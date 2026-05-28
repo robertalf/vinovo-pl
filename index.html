@@ -67,13 +67,11 @@ html,body{width:100%;height:100%;background:var(--paper);overflow:hidden;}
 .live-on{color:var(--green);}
 .live-off{color:var(--inkFaint);}
 
-/* clock */
 #clock{
   font-family:'DM Mono',monospace;font-size:11px;color:var(--inkSoft);
   align-self:flex-start;margin-top:2px;
 }
 
-/* tab pills */
 #tabs{display:flex;gap:5px;margin-top:10px;}
 .t-pill{
   padding:5px 14px;border-radius:20px;border:none;cursor:pointer;
@@ -115,7 +113,6 @@ html,body{width:100%;height:100%;background:var(--paper);overflow:hidden;}
 }
 #map-svg{display:block;width:100%;}
 
-/* legenda mappa */
 #map-legend{
   position:absolute;bottom:6px;right:8px;
   display:flex;flex-direction:column;gap:3px;
@@ -180,7 +177,7 @@ html,body{width:100%;height:100%;background:var(--paper);overflow:hidden;}
 .t-numero{font-family:'DM Mono',monospace;font-size:10px;color:var(--inkFaint);}
 .t-dir{font-family:'DM Mono',monospace;font-size:9px;font-weight:500;}
 .dir-chi{color:var(--blue);}
-.dir-pin覆{color:#8A6010;}
+.dir-pin{color:#8A6010;}
 
 .t-bot-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
 .t-ora{
@@ -213,7 +210,6 @@ html,body{width:100%;height:100%;background:var(--paper);overflow:hidden;}
   line-height:1.8;letter-spacing:0.03em;margin-bottom:20px;
 }
 
-/* bottone ORA */
 #btn-ora{
   width:100%;padding:16px;border-radius:12px;border:none;cursor:pointer;
   background:var(--ink);color:var(--paper);
@@ -226,7 +222,6 @@ html,body{width:100%;height:100%;background:var(--paper);overflow:hidden;}
   text-align:center;margin-bottom:22px;letter-spacing:0.04em;
 }
 
-/* form */
 .s-section{
   font-family:'DM Mono',monospace;font-size:8px;color:var(--inkFaint);
   letter-spacing:0.1em;margin-bottom:10px;margin-top:4px;
@@ -256,7 +251,20 @@ html,body{width:100%;height:100%;background:var(--paper);overflow:hidden;}
 }
 .btn-save:active{background:var(--ink);color:var(--paper);}
 
-/* storico */
+#pattern-wrap{
+  display:none;
+}
+.pattern-card{
+  background:var(--amberLo);border:1px solid #E0C090;
+  border-radius:8px;padding:12px 14px;margin-bottom:14px;
+}
+.pattern-title{
+  font-family:'DM Mono',monospace;font-size:8px;color:var(--amber);
+  letter-spacing:0.08em;font-weight:500;margin-bottom:6px;
+}
+.pattern-body{font-family:'DM Mono',monospace;font-size:9px;color:var(--inkSoft);line-height:1.9;}
+
+#storico-list{display:flex;flex-direction:column;gap:6px;}
 .sto-item{
   background:white;border:1px solid var(--border);border-radius:8px;
   padding:10px 14px;display:flex;justify-content:space-between;
@@ -278,17 +286,6 @@ html,body{width:100%;height:100%;background:var(--paper);overflow:hidden;}
 .btn-del{background:none;border:none;cursor:pointer;color:var(--inkFaint);font-size:14px;padding:3px 5px;border-radius:4px;}
 .btn-del:active{color:var(--red);background:var(--redLo);}
 
-.pattern-card{
-  background:var(--amberLo);border:1px solid #E0C090;
-  border-radius:8px;padding:12px 14px;margin-bottom:14px;
-}
-.pattern-title{
-  font-family:'DM Mono',monospace;font-size:8px;color:var(--amber);
-  letter-spacing:0.08em;font-weight:500;margin-bottom:6px;
-}
-.pattern-body{font-family:'DM Mono',monospace;font-size:9px;color:var(--inkSoft);line-height:1.9;}
-
-/* flash */
 #flash{
   position:fixed;top:24px;left:50%;transform:translateX(-50%);
   background:var(--ink);color:var(--paper);
@@ -299,7 +296,6 @@ html,body{width:100%;height:100%;background:var(--paper);overflow:hidden;}
 }
 #flash.show{opacity:1;}
 
-/* footer */
 #footer{
   padding:6px 20px 10px;background:var(--paper2);
   border-top:1px solid var(--border);flex-shrink:0;
@@ -387,7 +383,7 @@ html,body{width:100%;height:100%;background:var(--paper);overflow:hidden;}
       <button class="btn-save" onclick="salvaSegnalazione()">Salva segnalazione</button>
     </div>
 
-    <div id="pattern-wrap" style="display:none">
+    <div id="pattern-wrap">
       <div class="s-section">SCHEMA MERCI RILEVATO</div>
       <div class="pattern-card">
         <div class="pattern-title">Passaggi stimati dai tuoi avvistamenti</div>
@@ -406,9 +402,6 @@ html,body{width:100%;height:100%;background:var(--paper);overflow:hidden;}
 <div id="flash"></div>
 
 <script>
-/* ══════════════════════════════
-   MAPPA — bbox Pinerolo→Torino
-══════════════════════════════ */
 const MW=360, MH=230;
 const BBOX={lonMin:7.25,lonMax:7.70,latMin:44.87,latMax:45.08};
 function proj(lat,lon){
@@ -445,7 +438,7 @@ const RAIL_PTS=[
   proj(44.9611,7.5990),
   proj(44.9650,7.6080),
   proj(44.9700,7.6160),
-  proj(44.9480,7.6320), // PL Vinovo
+  proj(44.9480,7.6320),
   proj(44.9760,7.6260),
   proj(44.9820,7.6320),
   proj(44.9880,7.6370),
@@ -532,14 +525,13 @@ function renderMappa(treni,plChiuso){
   h+=`<circle cx="${PL.x.toFixed(1)}" cy="${PL.y.toFixed(1)}" r="7" fill="${plCol}" stroke="white" stroke-width="2"/>`;
   h+=`<text x="${PL.x.toFixed(1)}" y="${(PL.y+3).toFixed(1)}" text-anchor="middle" font-size="6" fill="white" font-family="'DM Mono',monospace" font-weight="500">PL</text>`;
 
-  treni.slice(0,6).forEach(t=>{
+  treni.forEach(t=>{
     const pos=trainPos(t);
     if(!pos)return;
     const isMerci=t.tipo==='Merci';
     const col=isMerci?'#8A4A10':'#1A5A9A';
     const colLo=isMerci?'#F5E8D4':'#D8E8F8';
     const arrow=t.dir==='Chivasso'?'▶':'◀';
-    const urgent=!isMerci&&t.min stroke-width<=5;
     const trainCol=t.min<=5&&!isMerci?'#C8321A':col;
     h+=`<rect x="${(pos.x-16).toFixed(1)}" y="${(pos.y-9).toFixed(1)}" width="32" height="15" rx="5" fill="rgba(0,0,0,0.12)" transform="translate(1,2)"/>`;
     h+=`<rect x="${(pos.x-16).toFixed(1)}" y="${(pos.y-9).toFixed(1)}" width="32" height="15" rx="5" fill="${trainCol}"/>`;
@@ -555,13 +547,10 @@ function renderMappa(treni,plChiuso){
   document.getElementById('map-svg').innerHTML=h;
 }
 
-/* ══════════════════════════════
-   LAVORI & UTILS
-══════════════════════════════ */
 function getLavori(){
   const d=new Date();
   if(d>=new Date('2026-06-15')&&d<=new Date('2026-07-26'))
-    return{fase:2,msg:'⚠ Fase 2 lavori (15 giu–26 laug 2026): nessun treno al P.L. di Vinovo. Bus sostitutivi Pinerolo ↔ Torino Lingotto.',col:'#C8321A'};
+    return{fase:2,msg:'⚠ Fase 2 lavori (15 giu–26 lug 2026): nessun treno al P.L. di Vinovo. Bus sostitutivi Pinerolo ↔ Torino Lingotto.',col:'#C8321A'};
   if(d>=new Date('2026-05-09')&&d<=new Date('2026-06-14'))
     return{fase:1,msg:'⚠ Fase 1 lavori (9 mag–14 giu 2026): sospensione Pinerolo–None. Vinovo servita regolarmente.',col:'#C87010'};
   return{fase:0,msg:null,col:null};
@@ -594,9 +583,6 @@ const ORARI=[
     .map((o,i)=>({numero:'262'+String(i*2+1).padStart(2,'0'),dir:'Pinerolo',oraRef:o,tipo:'SFM2',note:null})),
 ];
 
-/* ══════════════════════════════
-   STORICO & FILTRI
-══════════════════════════════ */
 function loadStorico(){try{return JSON.parse(localStorage.getItem('vinovo_storico')||'[]');}catch{return[];}}
 function saveStorico(s){try{localStorage.setItem('vinovo_storico',JSON.stringify(s));}catch{}}
 
@@ -660,9 +646,6 @@ function applyFiltro(t){
   return true;
 }
 
-/* ══════════════════════════════
-   RENDER ENGINE
-══════════════════════════════ */
 function colMin(t){
   if(t.tipo==='Merci')return'#8A4A10';
   if(t.min<=3)return'#C8321A';
@@ -680,21 +663,30 @@ function renderStato(treni){
   else if(chiuso){col='#C8321A';lbl='Barriere chiuse · Riapertura ~'+pr.barUp;}
   else if(inArr){col='#C87010';lbl='In arrivo tra '+pr.min+' min · Chiusura ~'+pr.barDown;}
   else if(pr){col='#1A7A3C';lbl='Aperto · Prossimo tra '+pr.min+' min ('+pr.oraPL+')';}
-  else{col='#1A7A3C';lbl='Aperto · Nessun treno nelle próximas 3h';}
+  else{col='#1A7A3C';lbl='Aperto · Nessun treno nelle prossime 3h';}
   
   const dot=document.getElementById('stato-dot');
-  dot.style.background=col;
-  dot.classList.toggle('pulsing',chiuso);
-  document.getElementById('stato-txt').style.color=col;
-  document.getElementById('stato-txt').textContent=lbl;
-  document.getElementById('stato').style.background=col+'12';
-  document.getElementById('stato').style.borderBottomColor=col+'25';
+  if(dot) {
+    dot.style.background=col;
+    dot.classList.toggle('pulsing',chiuso);
+  }
+  const txt=document.getElementById('stato-txt');
+  if(txt) {
+    txt.style.color=col;
+    txt.textContent=lbl;
+  }
+  const stBox=document.getElementById('stato');
+  if(stBox) {
+    stBox.style.background=col+'12';
+    stBox.style.borderBottomColor=col+'25';
+  }
   return chiuso;
 }
 
 function renderLista(treni){
   const fl=treni.filter(applyFiltro);
   const el=document.getElementById('lista');
+  if(!el) return;
   if(!fl.length){
     el.innerHTML=`<div class="empty">${LAVORI.fase===2?'Nessun treno fino al 26 luglio 2026\n(Fase 2 lavori — bus sostitutivi)':'Nessun treno\nnelle prossime 3h'}</div>`;
     return;
@@ -727,17 +719,22 @@ function renderLista(treni){
 
 function renderBanner(){
   const b=document.getElementById('banner');
+  if(!b) return;
   if(!LAVORI.msg){b.style.display='none';return;}
   b.style.display='block';
   b.style.background=LAVORI.col+'12';
   b.style.borderBottomColor=LAVORI.col+'30';
-  document.getElementById('banner-txt').style.color=LAVORI.col;
-  document.getElementById('banner-txt').textContent=LAVORI.msg;
+  const txt=document.getElementById('banner-txt');
+  if(txt) {
+    txt.style.color=LAVORI.col;
+    txt.textContent=LAVORI.msg;
+  }
 }
 
 function renderStorico(){
   const sto=loadStorico();
   const el=document.getElementById('storico-list');
+  if(!el) return;
   if(!sto.length){
     el.innerHTML='<div class="empty" style="padding:16px 0">Nessuna segnalazione ancora</div>';
   } else {
@@ -755,13 +752,12 @@ function renderStorico(){
   }
   const p=calcolaPattern(sto);
   const pw=document.getElementById('pattern-wrap');
-  if(p){pw.style.display='block';document.getElementById('pattern-txt').textContent=p;}
-  else pw.style.display='none';
+  if(pw) {
+    if(p){pw.style.display='block';document.getElementById('pattern-txt').textContent=p;}
+    else pw.style.display='none';
+  }
 }
 
-/* ══════════════════════════════
-   INTERACTIONS
-══════════════════════════════ */
 function setTab(t){
   tab=t;
   document.getElementById('btn-monitor').className='t-pill '+(t==='monitor'?'on':'off');
@@ -797,19 +793,17 @@ function salvaSegnalazione(){
   renderStorico();
 }
 
-functionBox eliminaSegnalazione(idx){
+function eliminaSegnalazione(idx){
   const sto=loadStorico();sto.splice(idx,1);saveStorico(sto);renderStorico();
 }
 
 function flash(msg){
   const f=document.getElementById('flash');
+  if(!f) return;
   f.textContent=msg;f.classList.add('show');
   setTimeout(()=>f.classList.remove('show'),2200);
 }
 
-/* ══════════════════════════════
-   LIVE DATA CORE
-══════════════════════════════ */
 async function fetchRitardi(){
   try{
     const now=new Date();
@@ -821,10 +815,10 @@ async function fetchRitardi(){
     const data=await r.json();
     (data||[]).forEach(t=>{if(t.numeroTreno!=null&&t.ritardo!=null)RITARDI[String(t.numeroTreno)]=t.ritardo;});
     const li=document.getElementById('live-ind');
-    li.textContent='● live';li.className='h-live live-on';
+    if(li) { li.textContent='● live';li.className='h-live live-on'; }
   }catch{
     const li=document.getElementById('live-ind');
-    li.textContent='● stimato';li.className='h-live live-off';
+    if(li) { li.textContent='● stimato';li.className='h-live live-off'; }
   }
 }
 
@@ -835,24 +829,26 @@ function aggiornaMonitor(){
   renderLista(treni);
 }
 
-// Inizializzazione orario campo manuale
 const _n=new Date();
-document.getElementById('seg-ora').value=String(_n.getHours()).padStart(2,'0')+':'+String(_n.getMinutes()).padStart(2,'0');
+const segOraInput = document.getElementById('seg-ora');
+if(segOraInput) {
+  segOraInput.value=String(_n.getHours()).padStart(2,'0')+':'+String(_n.getMinutes()).padStart(2,'0');
+}
 
 renderBanner();
 aggiornaMonitor();
 
-// Clock loop
 setInterval(()=>{
   const n=new Date();
-  document.getElementById('clock').textContent=
-    String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')+':'+String(n.getSeconds()).padStart(2,'0');
+  const clEl = document.getElementById('clock');
+  if(clEl) {
+    clEl.textContent=
+      String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')+':'+String(n.getSeconds()).padStart(2,'0');
+  }
 },1000);
 
-// Train data loop
 setInterval(aggiornaMonitor,10000);
 
-// Delay fetch loop
 fetchRitardi();
 setInterval(fetchRitardi,60000);
 </script>
