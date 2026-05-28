@@ -104,33 +104,20 @@ html,body{width:100%;height:100%;background:var(--paper);overflow:hidden;}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(0.85)}}
 .pulsing{animation:pulse 1s ease-in-out infinite;}
 
-/* ── MAPPA ── */
-#map-wrap{
-  flex-shrink:0;
-  background:#EEF2F8;
-  border-bottom:1px solid var(--border);
-  position:relative;overflow:hidden;
-}
-#map-svg{display:block;width:100%;}
-
-#map-legend{
-  position:absolute;bottom:6px;right:8px;
-  display:flex;flex-direction:column;gap:3px;
-  background:rgba(247,244,239,0.92);
-  border:1px solid var(--border);
-  border-radius:6px;padding:5px 8px;
-}
-.leg-row{display:flex;align-items:center;gap:5px;}
-.leg-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
-.leg-txt{font-family:'DM Mono',monospace;font-size:7px;color:var(--inkSoft);letter-spacing:0.04em;}
-
-/* ── FILTRI ── */
-#filtri{
-  display:flex;gap:5px;padding:7px 14px;
+/* ── FILTRI CUMULATIVI ── */
+#filtri-container{
+  display:flex;flex-direction:column;gap:5px;padding:8px 14px;
   background:var(--paper);border-bottom:1px solid var(--border);
-  flex-shrink:0;overflow-x:auto;
+  flex-shrink:0;
 }
-#filtri::-webkit-scrollbar{height:0;}
+.filtri-row{
+  display:flex;gap:5px;overflow-x:auto;align-items:center;
+}
+.filtri-row::-webkit-scrollbar{height:0;}
+.filtri-label{
+  font-family:'DM Mono',monospace;font-size:7.5px;color:var(--inkFaint);
+  text-transform:uppercase;letter-spacing:0.05em;min-width:35px;
+}
 .f-chip{
   padding:4px 11px;border-radius:16px;border:none;cursor:pointer;
   font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.05em;
@@ -139,7 +126,7 @@ html,body{width:100%;height:100%;background:var(--paper);overflow:hidden;}
 .f-chip.on{background:var(--ink);color:var(--paper);}
 .f-chip.off{background:transparent;color:var(--inkFaint);border:1px solid var(--border);}
 
-/* ── LISTA ── */
+/* ── LISTA TRENI ── */
 #lista{flex:1;overflow-y:auto;}
 
 .t-card{
@@ -195,6 +182,26 @@ html,body{width:100%;height:100%;background:var(--paper);overflow:hidden;}
   font-family:'DM Mono',monospace;font-size:10px;
   color:var(--inkFaint);line-height:2.2;letter-spacing:0.04em;
 }
+
+/* ── MAPPA (SOTTO) ── */
+#map-wrap{
+  flex-shrink:0;
+  background:#EEF2F8;
+  border-top:1.5px solid var(--ink);
+  position:relative;overflow:hidden;
+}
+#map-svg{display:block;width:100%;}
+
+#map-legend{
+  position:absolute;bottom:6px;right:8px;
+  display:flex;flex-direction:column;gap:3px;
+  background:rgba(247,244,239,0.92);
+  border:1px solid var(--border);
+  border-radius:6px;padding:5px 8px;
+}
+.leg-row{display:flex;align-items:center;gap:5px;}
+.leg-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
+.leg-txt{font-family:'DM Mono',monospace;font-size:7px;color:var(--inkSoft);letter-spacing:0.04em;}
 
 /* ── SCHERMATA SEGNALA ── */
 #screen-segnala{
@@ -309,6 +316,7 @@ html,body{width:100%;height:100%;background:var(--paper);overflow:hidden;}
 <body>
 <div id="app">
 
+  <!-- HEADER -->
   <div id="header">
     <div class="h-row">
       <div>
@@ -326,14 +334,38 @@ html,body{width:100%;height:100%;background:var(--paper);overflow:hidden;}
     </div>
   </div>
 
+  <!-- BANNER LAVORI -->
   <div id="banner"><p id="banner-txt"></p></div>
 
+  <!-- STATO PL -->
   <div id="stato">
     <div id="stato-dot"></div>
     <div id="stato-txt"></div>
   </div>
 
+  <!-- MONITOR -->
   <div id="screen-monitor" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+    
+    <!-- FILTRI CUMULATIVI -->
+    <div id="filtri-container">
+      <div class="filtri-row" style="margin-bottom:4px;">
+        <span class="filtri-label">Tratta:</span>
+        <button class="f-chip on"  id="f-dir-tutti" onclick="setFiltroDirezione('tutti')">Tutte</button>
+        <button class="f-chip off" id="f-dir-chi"   onclick="setFiltroDirezione('Chivasso')">▶ Chivasso</button>
+        <button class="f-chip off" id="f-dir-pin"   onclick="setFiltroDirezione('Pinerolo')">◀ Pinerolo</button>
+      </div>
+      <div class="filtri-row">
+        <span class="filtri-label">Tipo:</span>
+        <button class="f-chip on"  id="f-tipo-tutti" onclick="setFiltroTipo('tutti')">Tutti</button>
+        <button class="f-chip off" id="f-tipo-sfm2"  onclick="setFiltroTipo('SFM2')">SFM2</button>
+        <button class="f-chip off" id="f-tipo-merci" onclick="setFiltroTipo('Merci')">Merci</button>
+      </div>
+    </div>
+
+    <!-- LISTA (ORA SOPRA LA MAPPA) -->
+    <div id="lista" class="fade"></div>
+
+    <!-- MAPPA (ORA IN BASSO) -->
     <div id="map-wrap">
       <svg id="map-svg" viewBox="0 0 360 230" xmlns="http://www.w3.org/2000/svg"></svg>
       <div id="map-legend">
@@ -342,16 +374,10 @@ html,body{width:100%;height:100%;background:var(--paper);overflow:hidden;}
         <div class="leg-row"><div class="leg-dot" style="background:var(--red);border-radius:50%"></div><span class="leg-txt">P.L.</span></div>
       </div>
     </div>
-    <div id="filtri">
-      <button class="f-chip on"  data-f="tutti"  onclick="setFiltro('tutti')">Tutti</button>
-      <button class="f-chip off" data-f="chi"    onclick="setFiltro('chi')">▶ Chivasso</button>
-      <button class="f-chip off" data-f="pin"    onclick="setFiltro('pin')">◀ Pinerolo</button>
-      <button class="f-chip off" data-f="sfm2"   onclick="setFiltro('sfm2')">SFM2</button>
-      <button class="f-chip off" data-f="merci"  onclick="setFiltro('merci')">Merci</button>
-    </div>
-    <div id="lista" class="fade"></div>
+
   </div>
 
+  <!-- SEGNALA -->
   <div id="screen-segnala">
     <div class="s-heading">Segnala transito</div>
     <div class="s-body">Hai visto passare un treno? Registralo con un tap.<br>L'app impara e migliora le stime nel tempo.</div>
@@ -377,7 +403,6 @@ html,body{width:100%;height:100%;background:var(--paper);overflow:hidden;}
         <select class="s-select" id="seg-dir">
           <option value="Chivasso">▶ Verso Chivasso</option>
           <option value="Pinerolo">◀ Verso Pinerolo</option>
-          <option value="?">Non so</option>
         </select>
       </div>
       <button class="btn-save" onclick="salvaSegnalazione()">Salva segnalazione</button>
@@ -552,7 +577,7 @@ function getLavori(){
   if(d>=new Date('2026-06-15')&&d<=new Date('2026-07-26'))
     return{fase:2,msg:'⚠ Fase 2 lavori (15 giu–26 lug 2026): nessun treno al P.L. di Vinovo. Bus sostitutivi Pinerolo ↔ Torino Lingotto.',col:'#C8321A'};
   if(d>=new Date('2026-05-09')&&d<=new Date('2026-06-14'))
-    return{fase:1,msg:'⚠ Fase 1 lavori (9 mag–14 giu 2026): sospensione Pinerolo–None. Vinovo servita regolarmente.',col:'#C87010'};
+    return{fase:1,msg:'⚠ Fase 1 lavori (9 mag–14 giu 2026): Sospensione Pinerolo–None. Vinovo servita regolarmente.',col:'#C87010'};
   return{fase:0,msg:null,col:null};
 }
 const LAVORI=getLavori();
@@ -598,8 +623,10 @@ function calcolaPattern(storico){
   return Object.entries(fasce).sort((a,b)=>b[1]-a[1]).map(([f,n])=>`${f}: ${n} passaggi`).join('\n');
 }
 
+/* Stato filtri cumulativi */
+let filtroDirezione = 'tutti';
+let filtroTipo = 'tutti';
 let RITARDI={};
-let filtro='tutti';
 let tab='monitor';
 
 function merciDaStorico(){
@@ -609,7 +636,9 @@ function merciDaStorico(){
     .map((s,i)=>{
       const oraPL=s.ora;
       const min=minUntil(oraPL,0);
-      return{numero:'MCi-'+i,dir:s.dir||'?',oraRef:s.ora,tipo:'Merci',
+      /* FIXED: se la direzione è mancante o spuria, la calcola in automatico o imposta un fallback pulito */
+      const direzioneCorretta = (s.dir === 'Chivasso' || s.dir === 'Pinerolo') ? s.dir : 'Chivasso';
+      return{numero:'MCi-'+(i+1),dir:direzioneCorretta,oraRef:s.ora,tipo:'Merci',
              oraPL,min,ritardo:0,barDown:addMin(oraPL,-3),barUp:addMin(oraPL,1),note:'segnalato'};
     }).filter(t=>t.min>=-2&&t.min<=180);
 }
@@ -637,13 +666,11 @@ function buildTreni(){
   return[...sfm2,...merciObs,...merciStd].sort((a,b)=>a.min-b.min);
 }
 
-function applyFiltro(t){
-  if(filtro==='tutti')return true;
-  if(filtro==='chi')return t.dir==='Chivasso';
-  if(filtro==='pin')return t.dir==='Pinerolo';
-  if(filtro==='sfm2')return t.tipo==='SFM2';
-  if(filtro==='merci')return t.tipo==='Merci';
-  return true;
+/* Logica di filtraggio combinata cumulativa */
+function applyFiltriCombinati(t){
+  const matchDirezione = (filtroDirezione === 'tutti') || (t.dir === filtroDirezione);
+  const matchTipo = (filtroTipo === 'tutti') || (t.tipo === filtroTipo);
+  return matchDirezione && matchTipo;
 }
 
 function colMin(t){
@@ -655,7 +682,7 @@ function colMin(t){
 }
 
 function renderStato(treni){
-  const pr=treni.filter(applyFiltro)[0];
+  const pr=treni.filter(applyFiltriCombinati)[0];
   const chiuso=pr&&pr.min<=3&&pr.min>=-1;
   const inArr=pr&&pr.min<=8&&!chiuso;
   let col,lbl;
@@ -663,7 +690,7 @@ function renderStato(treni){
   else if(chiuso){col='#C8321A';lbl='Barriere chiuse · Riapertura ~'+pr.barUp;}
   else if(inArr){col='#C87010';lbl='In arrivo tra '+pr.min+' min · Chiusura ~'+pr.barDown;}
   else if(pr){col='#1A7A3C';lbl='Aperto · Prossimo tra '+pr.min+' min ('+pr.oraPL+')';}
-  else{col='#1A7A3C';lbl='Aperto · Nessun treno nelle prossime 3h';}
+  else{col='#1A7A3C';lbl='Aperto · Nessun treno nei parametri selezionati';}
   
   const dot=document.getElementById('stato-dot');
   if(dot) {
@@ -684,11 +711,11 @@ function renderStato(treni){
 }
 
 function renderLista(treni){
-  const fl=treni.filter(applyFiltro);
+  const fl=treni.filter(applyFiltriCombinati);
   const el=document.getElementById('lista');
   if(!el) return;
   if(!fl.length){
-    el.innerHTML=`<div class="empty">${LAVORI.fase===2?'Nessun treno fino al 26 luglio 2026\n(Fase 2 lavori — bus sostitutivi)':'Nessun treno\nnelle prossime 3h'}</div>`;
+    el.innerHTML=`<div class="empty">${LAVORI.fase===2?'Nessun treno fino al 26 luglio 2026\n(Fase 2 lavori — bus sostitutivi)':'Nessun treno corrispondente\nai filtri selezionati'}</div>`;
     return;
   }
   el.innerHTML=fl.map((t,i)=>{
@@ -742,7 +769,7 @@ function renderStorico(){
       <div class="sto-item">
         <div>
           <div class="sto-time">${s.ora}</div>
-          <div class="sto-meta">${new Date(s.ts).toLocaleDateString('it-IT')} · ${s.dir||'dir. ?'}</div>
+          <div class="sto-meta">${new Date(s.ts).toLocaleDateString('it-IT')} · ${s.dir||'Chivasso'}</div>
         </div>
         <div class="sto-right">
           <span class="sto-chip ${s.tipo==='Merci'?'sto-merci':s.manuale?'sto-manual':'sto-sfm2'}">${s.tipo}</span>
@@ -767,9 +794,20 @@ function setTab(t){
   if(t==='segnala')renderStorico();
 }
 
-function setFiltro(f){
-  filtro=f;
-  document.querySelectorAll('.f-chip').forEach(b=>b.className='f-chip '+(b.dataset.f===f?'on':'off'));
+/* Gestione dei filtri cumulativi */
+function setFiltroDirezione(d){
+  filtroDirezione = d;
+  document.getElementById('f-dir-tutti').className = 'f-chip ' + (d === 'tutti' ? 'on' : 'off');
+  document.getElementById('f-dir-chi').className = 'f-chip ' + (d === 'Chivasso' ? 'on' : 'off');
+  document.getElementById('f-dir-pin').className = 'f-chip ' + (d === 'Pinerolo' ? 'on' : 'off');
+  aggiornaMonitor();
+}
+
+function setFiltroTipo(t){
+  filtroTipo = t;
+  document.getElementById('f-tipo-tutti').className = 'f-chip ' + (t === 'tutti' ? 'on' : 'off');
+  document.getElementById('f-tipo-sfm2').className = 'f-chip ' + (t === 'SFM2' ? 'on' : 'off');
+  document.getElementById('f-tipo-merci').className = 'f-chip ' + (t === 'Merci' ? 'on' : 'off');
   aggiornaMonitor();
 }
 
