@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
 <meta name="apple-mobile-web-app-title" content="P.L. Vinovo"/>
 <meta name="theme-color" content="#F7F4EF"/>
-<title>P.L. Vinovo</title>
+<title>P.L. Vinovo - Realtime Engine</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,600;0,700;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <style>
@@ -104,20 +104,33 @@ html,body{width:100%;height:100%;background:var(--paper);overflow:hidden;}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(0.85)}}
 .pulsing{animation:pulse 1s ease-in-out infinite;}
 
-/* ── FILTRI CUMULATIVI ── */
-#filtri-container{
-  display:flex;flex-direction:column;gap:5px;padding:8px 14px;
-  background:var(--paper);border-bottom:1px solid var(--border);
+/* ── MAPPA ── */
+#map-wrap{
   flex-shrink:0;
+  background:#EEF2F8;
+  border-bottom:1px solid var(--border);
+  position:relative;overflow:hidden;
 }
-.filtri-row{
-  display:flex;gap:5px;overflow-x:auto;align-items:center;
+#map-svg{display:block;width:100%;}
+
+#map-legend{
+  position:absolute;bottom:6px;right:8px;
+  display:flex;flex-direction:column;gap:3px;
+  background:rgba(247,244,239,0.92);
+  border:1px solid var(--border);
+  border-radius:6px;padding:5px 8px;
 }
-.filtri-row::-webkit-scrollbar{height:0;}
-.filtri-label{
-  font-family:'DM Mono',monospace;font-size:7.5px;color:var(--inkFaint);
-  text-transform:uppercase;letter-spacing:0.05em;min-width:35px;
+.leg-row{display:flex;align-items:center;gap:5px;}
+.leg-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
+.leg-txt{font-family:'DM Mono',monospace;font-size:7px;color:var(--inkSoft);letter-spacing:0.04em;}
+
+/* ── FILTRI ── */
+#filtri{
+  display:flex;gap:5px;padding:7px 14px;
+  background:var(--paper);border-bottom:1px solid var(--border);
+  flex-shrink:0;overflow-x:auto;
 }
+#filtri::-webkit-scrollbar{height:0;}
 .f-chip{
   padding:4px 11px;border-radius:16px;border:none;cursor:pointer;
   font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.05em;
@@ -126,7 +139,7 @@ html,body{width:100%;height:100%;background:var(--paper);overflow:hidden;}
 .f-chip.on{background:var(--ink);color:var(--paper);}
 .f-chip.off{background:transparent;color:var(--inkFaint);border:1px solid var(--border);}
 
-/* ── LISTA TRENI ── */
+/* ── LISTA ── */
 #lista{flex:1;overflow-y:auto;}
 
 .t-card{
@@ -159,6 +172,7 @@ html,body{width:100%;height:100%;background:var(--paper);overflow:hidden;}
 .chip-sfm2{background:var(--blueLo);color:var(--blue);border:1px solid #B8D0EC;}
 .chip-merci{background:var(--amberLo);color:var(--merci);border:1px solid #E0C090;}
 .chip-rit{background:var(--amberLo);color:var(--amber);border:1px solid #E0C090;}
+.chip-live{background:var(--greenLo);color:var(--green);border:1px solid #A8D4B8;}
 .chip-note{background:var(--paper2);color:var(--inkFaint);border:1px solid var(--border);}
 
 .t-numero{font-family:'DM Mono',monospace;font-size:10px;color:var(--inkFaint);}
@@ -182,26 +196,6 @@ html,body{width:100%;height:100%;background:var(--paper);overflow:hidden;}
   font-family:'DM Mono',monospace;font-size:10px;
   color:var(--inkFaint);line-height:2.2;letter-spacing:0.04em;
 }
-
-/* ── MAPPA (SOTTO) ── */
-#map-wrap{
-  flex-shrink:0;
-  background:#EEF2F8;
-  border-top:1.5px solid var(--ink);
-  position:relative;overflow:hidden;
-}
-#map-svg{display:block;width:100%;}
-
-#map-legend{
-  position:absolute;bottom:6px;right:8px;
-  display:flex;flex-direction:column;gap:3px;
-  background:rgba(247,244,239,0.92);
-  border:1px solid var(--border);
-  border-radius:6px;padding:5px 8px;
-}
-.leg-row{display:flex;align-items:center;gap:5px;}
-.leg-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
-.leg-txt{font-family:'DM Mono',monospace;font-size:7px;color:var(--inkSoft);letter-spacing:0.04em;}
 
 /* ── SCHERMATA SEGNALA ── */
 #screen-segnala{
@@ -258,20 +252,6 @@ html,body{width:100%;height:100%;background:var(--paper);overflow:hidden;}
 }
 .btn-save:active{background:var(--ink);color:var(--paper);}
 
-#pattern-wrap{
-  display:none;
-}
-.pattern-card{
-  background:var(--amberLo);border:1px solid #E0C090;
-  border-radius:8px;padding:12px 14px;margin-bottom:14px;
-}
-.pattern-title{
-  font-family:'DM Mono',monospace;font-size:8px;color:var(--amber);
-  letter-spacing:0.08em;font-weight:500;margin-bottom:6px;
-}
-.pattern-body{font-family:'DM Mono',monospace;font-size:9px;color:var(--inkSoft);line-height:1.9;}
-
-#storico-list{display:flex;flex-direction:column;gap:6px;}
 .sto-item{
   background:white;border:1px solid var(--border);border-radius:8px;
   padding:10px 14px;display:flex;justify-content:space-between;
@@ -292,6 +272,16 @@ html,body{width:100%;height:100%;background:var(--paper);overflow:hidden;}
 .sto-manual{background:var(--greenLo);color:var(--green);border:1px solid #A8D4B8;}
 .btn-del{background:none;border:none;cursor:pointer;color:var(--inkFaint);font-size:14px;padding:3px 5px;border-radius:4px;}
 .btn-del:active{color:var(--red);background:var(--redLo);}
+
+.pattern-card{
+  background:var(--amberLo);border:1px solid #E0C090;
+  border-radius:8px;padding:12px 14px;margin-bottom:14px;
+}
+.pattern-title{
+  font-family:'DM Mono',monospace;font-size:8px;color:var(--amber);
+  letter-spacing:0.08em;font-weight:500;margin-bottom:6px;
+}
+.pattern-body{font-family:'DM Mono',monospace;font-size:9px;color:var(--inkSoft);line-height:1.9;}
 
 #flash{
   position:fixed;top:24px;left:50%;transform:translateX(-50%);
@@ -316,7 +306,6 @@ html,body{width:100%;height:100%;background:var(--paper);overflow:hidden;}
 <body>
 <div id="app">
 
-  <!-- HEADER -->
   <div id="header">
     <div class="h-row">
       <div>
@@ -334,38 +323,14 @@ html,body{width:100%;height:100%;background:var(--paper);overflow:hidden;}
     </div>
   </div>
 
-  <!-- BANNER LAVORI -->
   <div id="banner"><p id="banner-txt"></p></div>
 
-  <!-- STATO PL -->
   <div id="stato">
     <div id="stato-dot"></div>
     <div id="stato-txt"></div>
   </div>
 
-  <!-- MONITOR -->
   <div id="screen-monitor" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
-    
-    <!-- FILTRI CUMULATIVI -->
-    <div id="filtri-container">
-      <div class="filtri-row" style="margin-bottom:4px;">
-        <span class="filtri-label">Tratta:</span>
-        <button class="f-chip on"  id="f-dir-tutti" onclick="setFiltroDirezione('tutti')">Tutte</button>
-        <button class="f-chip off" id="f-dir-chi"   onclick="setFiltroDirezione('Chivasso')">▶ Chivasso</button>
-        <button class="f-chip off" id="f-dir-pin"   onclick="setFiltroDirezione('Pinerolo')">◀ Pinerolo</button>
-      </div>
-      <div class="filtri-row">
-        <span class="filtri-label">Tipo:</span>
-        <button class="f-chip on"  id="f-tipo-tutti" onclick="setFiltroTipo('tutti')">Tutti</button>
-        <button class="f-chip off" id="f-tipo-sfm2"  onclick="setFiltroTipo('SFM2')">SFM2</button>
-        <button class="f-chip off" id="f-tipo-merci" onclick="setFiltroTipo('Merci')">Merci</button>
-      </div>
-    </div>
-
-    <!-- LISTA (ORA SOPRA LA MAPPA) -->
-    <div id="lista" class="fade"></div>
-
-    <!-- MAPPA (ORA IN BASSO) -->
     <div id="map-wrap">
       <svg id="map-svg" viewBox="0 0 360 230" xmlns="http://www.w3.org/2000/svg"></svg>
       <div id="map-legend">
@@ -374,16 +339,22 @@ html,body{width:100%;height:100%;background:var(--paper);overflow:hidden;}
         <div class="leg-row"><div class="leg-dot" style="background:var(--red);border-radius:50%"></div><span class="leg-txt">P.L.</span></div>
       </div>
     </div>
-
+    <div id="filtri">
+      <button class="f-chip on"  data-f="tutti"  onclick="setFiltro('tutti')">Tutti</button>
+      <button class="f-chip off" data-f="chi"    onclick="setFiltro('chi')">▶ Chivasso</button>
+      <button class="f-chip off" data-f="pin"    onclick="setFiltro('pin')">◀ Pinerolo</button>
+      <button class="f-chip off" data-f="sfm2"   onclick="setFiltro('sfm2')">SFM2</button>
+      <button class="f-chip off" data-f="merci"  onclick="setFiltro('merci')">Merci</button>
+    </div>
+    <div id="lista" class="fade"></div>
   </div>
 
-  <!-- SEGNALA -->
   <div id="screen-segnala">
     <div class="s-heading">Segnala transito</div>
-    <div class="s-body">Hai visto passare un treno? Registralo con un tap.<br>L'app impara e migliora le stime nel tempo.</div>
+    <div class="s-body">Hai visto passare un treno? Registralo con un tap.<br>L'app impara e sincronizza la mappa al secondo.</div>
 
     <button id="btn-ora" onclick="segnalaOra()">🚆 Passato adesso</button>
-    <div class="btn-hint">Registra il transito con l'ora esatta</div>
+    <div class="btn-hint">Registra il transito con l'ora esatta del sistema</div>
 
     <div class="s-section">INSERIMENTO MANUALE</div>
     <div class="s-card">
@@ -403,12 +374,13 @@ html,body{width:100%;height:100%;background:var(--paper);overflow:hidden;}
         <select class="s-select" id="seg-dir">
           <option value="Chivasso">▶ Verso Chivasso</option>
           <option value="Pinerolo">◀ Verso Pinerolo</option>
+          <option value="?">Non so</option>
         </select>
       </div>
       <button class="btn-save" onclick="salvaSegnalazione()">Salva segnalazione</button>
     </div>
 
-    <div id="pattern-wrap">
+    <div id="pattern-wrap" style="display:none">
       <div class="s-section">SCHEMA MERCI RILEVATO</div>
       <div class="pattern-card">
         <div class="pattern-title">Passaggi stimati dai tuoi avvistamenti</div>
@@ -421,12 +393,15 @@ html,body{width:100%;height:100%;background:var(--paper);overflow:hidden;}
     <div style="height:20px"></div>
   </div>
 
-  <div id="footer"><p>SFM2 Trenitalia Piemonte · OpenStreetMap · ViaggiaTreno (non ufficiale) · Merci: stimato da segnalazioni · Rispettare sempre i segnali ufficiali del passaggio a livello</p></div>
+  <div id="footer"><p>SFM2 Trenitalia Piemonte · OpenStreetMap · ViaggiaTreno RFI Realtime Proxy · Rispettare sempre i segnali del P.L.</p></div>
 </div>
 
 <div id="flash"></div>
 
 <script>
+/* ══════════════════════════════
+   PROIEZIONE MAPPA CARTOGRAFICA
+══════════════════════════════ */
 const MW=360, MH=230;
 const BBOX={lonMin:7.25,lonMax:7.70,latMin:44.87,latMax:45.08};
 function proj(lat,lon){
@@ -449,340 +424,274 @@ const STAZ=[
 ];
 
 const RAIL_PTS=[
-  proj(44.8875,7.3292),
-  proj(44.8970,7.3620),
-  proj(44.9020,7.3980),
-  proj(44.9060,7.4220),
-  proj(44.9130,7.4660),
-  proj(44.9190,7.4900),
-  proj(44.9240,7.5060),
-  proj(44.9310,7.5290),
-  proj(44.9400,7.5540),
-  proj(44.9490,7.5720),
-  proj(44.9560,7.5880),
-  proj(44.9611,7.5990),
-  proj(44.9650,7.6080),
-  proj(44.9700,7.6160),
-  proj(44.9480,7.6320),
-  proj(44.9760,7.6260),
-  proj(44.9820,7.6320),
-  proj(44.9880,7.6370),
-  proj(44.9914,7.6422),
-  proj(44.9990,7.6520),
-  proj(45.0060,7.6590),
-  proj(45.0150,7.6640),
-  proj(45.0298,7.6680),
-  proj(45.0450,7.6670),
-  proj(45.0580,7.6665),
-  proj(45.0709,7.6658),
+  proj(44.8875,7.3292), proj(44.8970,7.3620), proj(44.9020,7.3980), proj(44.9060,7.4220),
+  proj(44.9130,7.4660), proj(44.9190,7.4900), proj(44.9240,7.5060),
+  proj(44.9310,7.5290), proj(44.9400,7.5540), proj(44.9490,7.5720), proj(44.9560,7.5880),
+  proj(44.9611,7.5990), proj(44.9650,7.6080), proj(44.9700,7.6160),
+  proj(44.9480,7.6320), // PL Vinovo (Indice 14)
+  proj(44.9760,7.6260), proj(44.9820,7.6320), proj(44.9880,7.6370),
+  proj(44.9914,7.6422), proj(44.9990,7.6520), proj(45.0060,7.6590), proj(45.0150,7.6640),
+  proj(45.0298,7.6680), proj(45.0450,7.6670), proj(45.0580,7.6665),
+  proj(45.0709,7.6658)
 ];
+const PL_IDX = 14;
 
 function lerp(a,b,t){return a+(b-a)*t;}
 function ptStr(pts){return pts.map(p=>p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ');}
 
+/* MOTORE D'INTERPOLAZIONE CONTINUA AL SECONDO */
 function trainPos(t){
-  const{min,dir}=t;
-  if(min>90||min<-10)return null;
-  const PL_IDX=14;
-  const N=RAIL_PTS.length-1;
-  let frac;
-  if(dir==='Chivasso'){
-    const fracPL=PL_IDX/N;
-    if(min>=0) frac=fracPL-(min/90)*(fracPL);
-    else frac=fracPL+(-min/30)*((N-PL_IDX)/N);
+  if(t.secondsLeft > 5400 || t.secondsLeft < -600) return null;
+  const N = RAIL_PTS.length - 1;
+  let frac; 
+
+  if(t.dir === 'Chivasso'){
+    const fracPL = PL_IDX / N;
+    if(t.secondsLeft >= 0) {
+      frac = fracPL - (t.secondsLeft / 5400) * fracPL; 
+    } else {
+      frac = fracPL + (-t.secondsLeft / 1800) * ((N - PL_IDX) / N); 
+    }
   } else {
-    const fracPL=PL_IDX/N;
-    if(min>=0) frac=fracPL+(min/90)*((N-PL_IDX)/N);
-    else frac=fracPL-(-min/30)*(fracPL);
+    const fracPL = PL_IDX / N;
+    if(t.secondsLeft >= 0) {
+      frac = fracPL + (t.secondsLeft / 5400) * ((N - PL_IDX) / N);
+    } else {
+      frac = fracPL - (-t.secondsLeft / 1800) * fracPL;
+    }
   }
-  frac=Math.max(0.01,Math.min(0.99,frac));
-  const idx=Math.min(Math.floor(frac*N),N-1);
-  const tf=frac*N-idx;
-  const p1=RAIL_PTS[idx],p2=RAIL_PTS[Math.min(idx+1,N)];
-  return{x:lerp(p1.x,p2.x,tf),y:lerp(p1.y,p2.y,tf)};
+  frac = Math.max(0.01, Math.min(0.99, frac));
+  const idx = Math.min(Math.floor(frac * N), N - 1);
+  const tf = frac * N - idx;
+  return {
+    x: lerp(RAIL_PTS[idx].x, RAIL_PTS[idx+1].x, tf),
+    y: lerp(RAIL_PTS[idx].y, RAIL_PTS[idx+1].y, tf)
+  };
 }
 
-function renderMappa(treni,plChiuso){
-  const plCol=plChiuso?'#C8321A':'#1A7A3C';
-  let h='';
-  h+=`<rect width="${MW}" height="${MH}" fill="#EEF2F8"/>`;
-  h+=`<ellipse cx="60" cy="190" rx="70" ry="50" fill="#DDE8D4" opacity="0.7"/>`;
-  h+=`<ellipse cx="300" cy="30"  rx="60" ry="40" fill="#DDE8D4" opacity="0.5"/>`;
-  h+=`<rect x="0" y="150" width="60" height="80" fill="#D8E6CC" opacity="0.6"/>`;
+function renderMappa(treni, plChiuso){
+  const plCol = plChiuso ? 'var(--red)' : 'var(--green)';
+  let h = `<rect width="${MW}" height="${MH}" fill="#EEF2F8"/>`;
+  h += `<ellipse cx="60" cy="190" rx="70" ry="50" fill="#DDE8D4" opacity="0.7"/>`;
+  h += `<ellipse cx="300" cy="30"  rx="60" ry="40" fill="#DDE8D4" opacity="0.5"/>`;
+  h += `<rect x="0" y="150" width="60" height="80" fill="#D8E6CC" opacity="0.6"/>`;
 
   STAZ.forEach(s=>{
-    const p=proj(s.lat,s.lon);
-    const r=s.id==='psusa'||s.id==='lingotto'?20:s.id==='pinerolo'?14:10;
-    h+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${r}" fill="#E8E4DC" opacity="0.5"/>`;
+    const p = proj(s.lat,s.lon);
+    const r = s.id==='psusa'||s.id==='lingotto'?20:s.id==='pinerolo'?14:10;
+    h += `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${r}" fill="#E8E4DC" opacity="0.5"/>`;
   });
 
-  h+=`<polyline points="${[proj(44.90,7.35),proj(44.92,7.40),proj(44.94,7.46),proj(44.96,7.52)].map(p=>p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ')}" fill="none" stroke="#F0D080" stroke-width="3" stroke-linecap="round" opacity="0.6"/>`;
+  h += `<polyline points="${[proj(44.90,7.35),proj(44.92,7.40),proj(44.94,7.46),proj(44.96,7.52)].map(p=>p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ')}" fill="none" stroke="#F0D080" stroke-width="3" stroke-linecap="round" opacity="0.6"/>`;
+  for(let i=0;i<7;i++) h += `<line x1="${i*60}" y1="0" x2="${i*60}" y2="${MH}" stroke="#B8C4D0" stroke-width="0.4" opacity="0.3"/>`;
+  h += `<polyline points="${ptStr(RAIL_PTS)}" fill="none" stroke="#A09080" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity="0.3"/>`;
 
-  for(let i=0;i<7;i++) h+=`<line x1="${i*60}" y1="0" x2="${i*60}" y2="${MH}" stroke="#B8C4D0" stroke-width="0.4" opacity="0.3"/>`;
-  for(let i=0;i<5;i++) h+=`<line x1="0" y1="${i*58}" x2="${MW}" y2="${i*58}" stroke="#B8C4D0" stroke-width="0.4" opacity="0.3"/>`;
-
-  h+=`<polyline points="${ptStr(RAIL_PTS)}" fill="none" stroke="#A09080" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity="0.3"/>`;
-  
-  for(let i=0;i<RAIL_PTS.length-1;i+=1){
-    const frac=(i+0.5)/(RAIL_PTS.length-1);
-    const idx=Math.min(Math.floor(frac*(RAIL_PTS.length-1)),RAIL_PTS.length-2);
-    const tf=frac*(RAIL_PTS.length-1)-idx;
+  for(let i=0;i<RAIL_PTS.length-1;i++){
+    const frac = (i+0.5)/(RAIL_PTS.length-1);
+    const idx = Math.min(Math.floor(frac*(RAIL_PTS.length-1)),RAIL_PTS.length-2);
+    const tf = frac*(RAIL_PTS.length-1)-idx;
     const p1=RAIL_PTS[idx],p2=RAIL_PTS[Math.min(idx+1,RAIL_PTS.length-1)];
     const px=lerp(p1.x,p2.x,tf),py=lerp(p1.y,p2.y,tf);
     const dx=p2.x-p1.x,dy=p2.y-p1.y,len=Math.sqrt(dx*dx+dy*dy)||1;
     const nx=-dy/len*3.5,ny=dx/len*3.5;
-    h+=`<line x1="${(px+nx).toFixed(1)}" y1="${(py+ny).toFixed(1)}" x2="${(px-nx).toFixed(1)}" y2="${(py-ny).toFixed(1)}" stroke="#8C7A60" stroke-width="1.8" stroke-linecap="round" opacity="0.7"/>`;
+    h += `<line x1="${(px+nx).toFixed(1)}" y1="${(py+ny).toFixed(1)}" x2="${(px-nx).toFixed(1)}" y2="${(py-ny).toFixed(1)}" stroke="#8C7A60" stroke-width="1.8" stroke-linecap="round" opacity="0.7"/>`;
   }
-  h+=`<polyline points="${ptStr(RAIL_PTS)}" fill="none" stroke="#5C4A30" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>`;
+  h += `<polyline points="${ptStr(RAIL_PTS)}" fill="none" stroke="#5C4A30" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>`;
 
   STAZ.forEach(s=>{
-    const p=proj(s.lat,s.lon);
-    const big=s.id==='pinerolo'||s.id==='psusa';
-    h+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${big?6:4.5}" fill="white" stroke="#5C4A30" stroke-width="1.5"/>`;
-    const above=s.id==='none'||s.id==='airasca'||s.id==='lingotto';
-    const tx=p.x.toFixed(1);
-    const ty=(above?p.y-9:p.y+13).toFixed(1);
-    h+=`<text x="${tx}" y="${ty}" text-anchor="middle" font-size="8" fill="#5C4A30" font-family="'DM Mono',monospace" font-weight="500">${s.label}</text>`;
+    const p = proj(s.lat,s.lon);
+    const big = s.id==='pinerolo'||s.id==='psusa';
+    h += `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${big?6:4.5}" fill="white" stroke="#5C4A30" stroke-width="1.5"/>`;
+    const above = s.id==='none'||s.id==='airasca'||s.id==='lingotto';
+    h += `<text x="${p.x.toFixed(1)}" y="${(above?p.y-9:p.y+13).toFixed(1)}" text-anchor="middle" font-size="8" fill="#5C4A30" font-family="'DM Mono',monospace" font-weight="500">${s.label}</text>`;
   });
 
-  h+=`<line x1="${(PL.x-10).toFixed(1)}" y1="${PL.y.toFixed(1)}" x2="${(PL.x-2).toFixed(1)}" y2="${PL.y.toFixed(1)}" stroke="${plCol}" stroke-width="4" stroke-linecap="round" opacity="${plChiuso?1:0.55}"/>`;
-  h+=`<line x1="${(PL.x+2).toFixed(1)}" y1="${PL.y.toFixed(1)}"  x2="${(PL.x+10).toFixed(1)}" y2="${PL.y.toFixed(1)}" stroke="${plCol}" stroke-width="4" stroke-linecap="round" opacity="${plChiuso?1:0.55}"/>`;
-  h+=`<circle cx="${PL.x.toFixed(1)}" cy="${PL.y.toFixed(1)}" r="7" fill="${plCol}" stroke="white" stroke-width="2"/>`;
-  h+=`<text x="${PL.x.toFixed(1)}" y="${(PL.y+3).toFixed(1)}" text-anchor="middle" font-size="6" fill="white" font-family="'DM Mono',monospace" font-weight="500">PL</text>`;
+  h += `<line x1="${(PL.x-10).toFixed(1)}" y1="${PL.y.toFixed(1)}" x2="${(PL.x-2).toFixed(1)}" y2="${PL.y.toFixed(1)}" stroke="${plCol}" stroke-width="4" stroke-linecap="round"/>`;
+  h += `<line x1="${(PL.x+2).toFixed(1)}" y1="${PL.y.toFixed(1)}"  x2="${(PL.x+10).toFixed(1)}" y2="${PL.y.toFixed(1)}" stroke="${plCol}" stroke-width="4" stroke-linecap="round"/>`;
+  h += `<circle cx="${PL.x.toFixed(1)}" cy="${PL.y.toFixed(1)}" r="7" fill="${plCol}" stroke="white" stroke-width="2"/>`;
 
   treni.forEach(t=>{
-    const pos=trainPos(t);
-    if(!pos)return;
-    const isMerci=t.tipo==='Merci';
-    const col=isMerci?'#8A4A10':'#1A5A9A';
-    const colLo=isMerci?'#F5E8D4':'#D8E8F8';
-    const arrow=t.dir==='Chivasso'?'▶':'◀';
-    const trainCol=t.min<=5&&!isMerci?'#C8321A':col;
-    h+=`<rect x="${(pos.x-16).toFixed(1)}" y="${(pos.y-9).toFixed(1)}" width="32" height="15" rx="5" fill="rgba(0,0,0,0.12)" transform="translate(1,2)"/>`;
-    h+=`<rect x="${(pos.x-16).toFixed(1)}" y="${(pos.y-9).toFixed(1)}" width="32" height="15" rx="5" fill="${trainCol}"/>`;
-    h+=`<rect x="${(pos.x-16).toFixed(1)}" y="${(pos.y-9).toFixed(1)}" width="32" height="5" rx="5" fill="rgba(255,255,255,0.2)"/>`;
-    h+=`<rect x="${(pos.x-12).toFixed(1)}" y="${(pos.y-5).toFixed(1)}" width="5" height="5" rx="1" fill="white" opacity="0.85"/>`;
-    h+=`<rect x="${(pos.x+7).toFixed(1)}"  y="${(pos.y-5).toFixed(1)}" width="5" height="5" rx="1" fill="white" opacity="0.85"/>`;
-    if(t.min<=30){
-      h+=`<rect x="${(pos.x-14).toFixed(1)}" y="${(pos.y-20).toFixed(1)}" width="28" height="10" rx="3" fill="${colLo}" stroke="${trainCol}" stroke-width="0.8"/>`;
-      h+=`<text x="${pos.x.toFixed(1)}" y="${(pos.y-12.5).toFixed(1)}" text-anchor="middle" font-size="6.5" fill="${trainCol}" font-family="'DM Mono',monospace" font-weight="500">${arrow} ${t.numero}</text>`;
+    const pos = trainPos(t);
+    if(!pos) return;
+    const isMerci = t.tipo==='Merci';
+    const col = t.isLive ? 'var(--green)' : (isMerci ? 'var(--merci)' : 'var(--blue)');
+    const arrow = t.dir==='Chivasso'?'▶':'◀';
+    const urgent = !isMerci && t.min<=3 && t.min>=-1;
+    const trainCol = urgent ? 'var(--red)' : col;
+
+    h += `<rect x="${(pos.x-16).toFixed(1)}" y="${(pos.y-9).toFixed(1)}" width="32" height="15" rx="5" fill="rgba(0,0,0,0.12)" transform="translate(1,2)"/>`;
+    h += `<rect x="${(pos.x-16).toFixed(1)}" y="${(pos.y-9).toFixed(1)}" width="32" height="15" rx="5" fill="${trainCol}"/>`;
+    h += `<rect x="${(pos.x-12).toFixed(1)}" y="${(pos.y-5).toFixed(1)}" width="5" height="5" rx="1" fill="white" opacity="0.85"/>`;
+    h += `<rect x="${(pos.x+7).toFixed(1)}"  y="${(pos.y-5).toFixed(1)}" width="5" height="5" rx="1" fill="white" opacity="0.85"/>`;
+
+    if(t.min <= 30){
+      h += `<rect x="${(pos.x-18).toFixed(1)}" y="${(pos.y-22).toFixed(1)}" width="36" height="10" rx="3" fill="var(--paper)" stroke="${trainCol}" stroke-width="0.8"/>`;
+      h += `<text x="${pos.x.toFixed(1)}" y="${(pos.y-14.5).toFixed(1)}" text-anchor="middle" font-size="6.5" fill="${trainCol}" font-family="'DM Mono',monospace" font-weight="700">${arrow}${t.numero}</text>`;
     }
   });
-
   document.getElementById('map-svg').innerHTML=h;
 }
 
+/* ══════════════════════════════
+   LOGICA DEL CALENDARIO DINAMICO
+══════════════════════════════ */
 function getLavori(){
-  const d=new Date();
-  if(d>=new Date('2026-06-15')&&d<=new Date('2026-07-26'))
-    return{fase:2,msg:'⚠ Fase 2 lavori (15 giu–26 lug 2026): nessun treno al P.L. di Vinovo. Bus sostitutivi Pinerolo ↔ Torino Lingotto.',col:'#C8321A'};
-  if(d>=new Date('2026-05-09')&&d<=new Date('2026-06-14'))
-    return{fase:1,msg:'⚠ Fase 1 lavori (9 mag–14 giu 2026): Sospensione Pinerolo–None. Vinovo servita regolarmente.',col:'#C87010'};
-  return{fase:0,msg:null,col:null};
+  const d = new Date();
+  // Transizione automatica nel tempo senza toccare il codice
+  if(d >= new Date('2026-06-15') && d <= new Date('2026-07-26'))
+    return {fase:2, msg:'⚠ Fase 2 lavori (15 giu–26 lug 2026): Circolazione sospesa a Vinovo. Utilizzare i bus sostitutivi.', col:'#C8321A'};
+  if(d >= new Date('2026-05-09') && d <= new Date('2026-06-14'))
+    return {fase:1, msg:'⚠ Fase 1 lavori (9 mag–14 giu 2026): Tratta Pinerolo-None sospesa. Vinovo attiva regolarmente da/per Torino.', col:'#C87010'};
+  return {fase:0, msg:null, col:null};
 }
-const LAVORI=getLavori();
 
+/* ══════════════════════════════
+   ORARI E DISPACHING TIME RFI
+══════════════════════════════ */
 function addMin(hhmm,d){
   const[h,m]=hhmm.split(':').map(Number);
   const t=h*60+m+d;
   return String(Math.floor(t/60)%24).padStart(2,'0')+':'+String(t%60).padStart(2,'0');
 }
 
-function minUntil(hhmm,rit=0){
-  const now=new Date();
-  const[h,m]=hhmm.split(':').map(Number);
-  const t=new Date(now);t.setHours(h,m+rit,0,0);
-  if(t<now)t.setDate(t.getDate()+1);
-  return Math.round((t-now)/60000);
+function getSecondsUntil(hhmm, ritMin=0) {
+  const now = new Date();
+  const [h, m] = hhmm.split(':').map(Number);
+  const target = new Date(now);
+  target.setHours(h, m + ritMin, 0, 0);
+  if (target.getTime() - now.getTime() < -600000) { 
+    target.setDate(target.getDate() + 1);
+  }
+  return Math.round((target.getTime() - now.getTime()) / 1000);
 }
 
 const ORARI=[
   ...['05:42','06:12','06:42','07:12','07:42','08:12','08:42','09:42',
       '10:42','11:42','12:42','13:42','14:42','15:42','16:12','16:42',
       '17:12','17:42','18:12','18:42','19:42','20:42','21:42','22:42']
-    .map((o,i,a)=>({numero:'262'+String(i*2).padStart(2,'0'),dir:'Chivasso',oraRef:o,tipo:'SFM2',
-      note:i===0?'Prima':i===a.length-1?'Ultima':null})),
+    .map((o,i,a)=>({numero:'262'+String(i*2).padStart(2,'0'),dir:'Chivasso',oraRef:o,tipo:'SFM2',note:i===0?'Prima':i===a.length-1?'Ultima':null})),
   ...['05:56','06:26','06:56','07:26','07:56','08:26','08:56','09:56',
       '10:56','11:56','12:56','13:56','14:56','15:56','16:26','16:56',
       '17:26','17:56','18:26','18:56','19:56','20:56','21:56','22:56']
     .map((o,i)=>({numero:'262'+String(i*2+1).padStart(2,'0'),dir:'Pinerolo',oraRef:o,tipo:'SFM2',note:null})),
 ];
 
+/* ══════════════════════════════
+   MOTORE ARCHIVIAZIONE E LIVE BUILD
+══════════════════════════════ */
 function loadStorico(){try{return JSON.parse(localStorage.getItem('vinovo_storico')||'[]');}catch{return[];}}
 function saveStorico(s){try{localStorage.setItem('vinovo_storico',JSON.stringify(s));}catch{}}
 
-function calcolaPattern(storico){
-  const merci=storico.filter(s=>s.tipo==='Merci');
-  if(merci.length<3)return null;
-  const fasce={};
-  merci.forEach(s=>{
-    const h=parseInt(s.ora.split(':')[0]);
-    const f=h<6?'Notte (00–06)':h<12?'Mattina (06–12)':h<18?'Pomeriggio (12–18)':'Sera (18–24)';
-    fasce[f]=(fasce[f]||0)+1;
-  });
-  return Object.entries(fasce).sort((a,b)=>b[1]-a[1]).map(([f,n])=>`${f}: ${n} passaggi`).join('\n');
-}
-
-/* Stato filtri cumulativi */
-let filtroDirezione = 'tutti';
-let filtroTipo = 'tutti';
 let RITARDI={};
+let filtro='tutti';
 let tab='monitor';
 
-function merciDaStorico(){
-  const storico=loadStorico();
-  const cutoff=Date.now()-48*3600*1000;
-  return storico.filter(s=>s.tipo==='Merci'&&new Date(s.ts).getTime()>cutoff)
-    .map((s,i)=>{
-      const oraPL=s.ora;
-      const min=minUntil(oraPL,0);
-      /* FIXED: se la direzione è mancante o spuria, la calcola in automatico o imposta un fallback pulito */
-      const direzioneCorretta = (s.dir === 'Chivasso' || s.dir === 'Pinerolo') ? s.dir : 'Chivasso';
-      return{numero:'MCi-'+(i+1),dir:direzioneCorretta,oraRef:s.ora,tipo:'Merci',
-             oraPL,min,ritardo:0,barDown:addMin(oraPL,-3),barUp:addMin(oraPL,1),note:'segnalato'};
-    }).filter(t=>t.min>=-2&&t.min<=180);
-}
-
 function buildTreni(){
-  if(LAVORI.fase===2)return[];
-  const sfm2=ORARI.map(t=>{
-    const rit=RITARDI[t.numero]||0;
-    const oraPL=addMin(t.oraRef,2);
-    const min=minUntil(oraPL,rit);
-    return{...t,oraPL,min,ritardo:rit,barDown:addMin(oraPL,-3+rit),barUp:addMin(oraPL,1+rit)};
-  }).filter(t=>t.min>=-2&&t.min<=180);
-  
-  const merciObs=merciDaStorico();
-  const merciStd=[
-    {numero:'MCi-A',dir:'Chivasso',oraRef:'02:18',tipo:'Merci',note:'indicativo'},
-    {numero:'MCi-B',dir:'Pinerolo',oraRef:'03:42',tipo:'Merci',note:'indicativo'},
-    {numero:'MCi-C',dir:'Chivasso',oraRef:'23:48',tipo:'Merci',note:'indicativo'},
-  ].map(t=>{
-    const oraPL=addMin(t.oraRef,2);
-    const min=minUntil(oraPL,0);
-    return{...t,oraPL,min,ritardo:0,barDown:addMin(oraPL,-3),barUp:addMin(oraPL,1)};
-  }).filter(t=>t.min>=-2&&t.min<=180);
-  
-  return[...sfm2,...merciObs,...merciStd].sort((a,b)=>a.min-b.min);
+  const attivi = getLavori();
+  if(attivi.fase===2) return []; // In Fase 2 la lista si svuota programmaticamente
+
+  const listaTreni = [];
+  const oraAttuale = new Date();
+
+  // Priorità 1: Eventi inseriti live (scadono da soli dopo 10 min)
+  const storico = loadStorico();
+  storico.forEach(seg => {
+    const tsSeg = new Date(seg.ts);
+    const diffSecondi = Math.round((oraAttuale.getTime() - tsSeg.getTime()) / 1000);
+    if(diffSecondi >= 0 && diffSecondi < 600) {
+      listaTreni.push({
+        numero: seg.tipo === 'Merci' ? 'M-LIVE' : 'SFM-LIVE',
+        dir: seg.dir !== '?' ? seg.dir : 'Chivasso',
+        oraRef: seg.ora, oraPL: seg.ora,
+        min: Math.floor(-diffSecondi / 60),
+        secondsLeft: -diffSecondi, 
+        ritardo: 0, barDown: addMin(seg.ora, -3), barUp: addMin(seg.ora, 1),
+        note: 'RILEVATO', isLive: true
+      });
+    }
+  });
+
+  // Priorità 2: Orari commerciali standard filtrati sui ritardi proxy
+  const haLiveRecente = listaTreni.some(t => t.tipo === 'SFM2' && t.min >= -2);
+  ORARI.forEach(t => {
+    const rit = RITARDI[t.numero] || 0;
+    const oraPL = addMin(t.oraRef, 2);
+    const secondiMancanti = getSecondsUntil(oraPL, rit);
+    const minutiMancanti = Math.floor(secondiMancanti / 60);
+
+    if(secondiMancanti >= -120 && secondiMancanti <= 10800) {
+      if (!(haLiveRecente && minutiMancanti <= 2 && minutiMancanti >= -1)) {
+        listaTreni.push({
+          ...t, oraPL, min: minutiMancanti, secondsLeft: secondiMancanti, ritardo: rit,
+          barDown: addMin(oraPL, -3 + rit), barUp: addMin(oraPL, 1 + rit), isLive: false
+        });
+      }
+    }
+  });
+
+  return listaTreni.sort((a,b) => a.secondsLeft - b.secondsLeft);
 }
 
-/* Logica di filtraggio combinata cumulativa */
-function applyFiltriCombinati(t){
-  const matchDirezione = (filtroDirezione === 'tutti') || (t.dir === filtroDirezione);
-  const matchTipo = (filtroTipo === 'tutti') || (t.tipo === filtroTipo);
-  return matchDirezione && matchTipo;
+function applyFiltro(t){
+  if(filtro==='tutti')return true;
+  if(filtro==='chi')return t.dir==='Chivasso';
+  if(filtro==='pin')return t.dir==='Pinerolo';
+  if(filtro==='sfm2')return t.tipo==='SFM2';
+  if(filtro==='merci')return t.tipo==='Merci';
+  return true;
 }
 
-function colMin(t){
-  if(t.tipo==='Merci')return'#8A4A10';
-  if(t.min<=3)return'#C8321A';
-  if(t.min<=8)return'#C87010';
-  if(t.min<=20)return'#1A5A9A';
-  return'#A09888';
-}
-
+/* ── INTERFACCIA E REFRESH AUTOMATICO ── */
 function renderStato(treni){
-  const pr=treni.filter(applyFiltriCombinati)[0];
-  const chiuso=pr&&pr.min<=3&&pr.min>=-1;
-  const inArr=pr&&pr.min<=8&&!chiuso;
-  let col,lbl;
-  if(LAVORI.fase===2){col='#C8321A';lbl='Nessun treno — Lavori fase 2 (fino al 26 lug)';}
-  else if(chiuso){col='#C8321A';lbl='Barriere chiuse · Riapertura ~'+pr.barUp;}
-  else if(inArr){col='#C87010';lbl='In arrivo tra '+pr.min+' min · Chiusura ~'+pr.barDown;}
-  else if(pr){col='#1A7A3C';lbl='Aperto · Prossimo tra '+pr.min+' min ('+pr.oraPL+')';}
-  else{col='#1A7A3C';lbl='Aperto · Nessun treno nei parametri selezionati';}
+  const pr=treni.filter(applyFiltro)[0];
+  const chiuso=pr && pr.secondsLeft <= 180 && pr.secondsLeft >= -60; 
+  const inArr=pr && pr.secondsLeft <= 480 && !chiuso;
+  const attivi = getLavori();
   
-  const dot=document.getElementById('stato-dot');
-  if(dot) {
-    dot.style.background=col;
-    dot.classList.toggle('pulsing',chiuso);
-  }
-  const txt=document.getElementById('stato-txt');
-  if(txt) {
-    txt.style.color=col;
-    txt.textContent=lbl;
-  }
-  const stBox=document.getElementById('stato');
-  if(stBox) {
-    stBox.style.background=col+'12';
-    stBox.style.borderBottomColor=col+'25';
-  }
+  let col,lbl;
+  if(attivi.fase===2){col='var(--red)';lbl='Sbarre Aperte — Circolazione Sospesa per Lavori';}
+  else if(chiuso){col='var(--red)';lbl=`Barriere Abbassate · Transito in corso (Riapertura ~${pr.barUp})`;}
+  else if(inArr){col='var(--amber)';lbl=`In arrivo tra ${pr.min} min · Chiusura imminente (~${pr.barDown})`;}
+  else if(pr){col='var(--green)';lbl=`Aperto · Prossimo passaggio tra ${pr.min} min`;}
+  else{col='var(--green)';lbl='Aperto · Nessun treno nelle prossime 3 ore';}
+  
+  document.getElementById('stato-dot').style.background=col;
+  document.getElementById('stato-dot').classList.toggle('pulsing',chiuso);
+  document.getElementById('stato-txt').style.color=col;
+  document.getElementById('stato-txt').textContent=lbl;
+  document.getElementById('stato').style.background=col+'12';
   return chiuso;
 }
 
 function renderLista(treni){
-  const fl=treni.filter(applyFiltriCombinati);
+  const fl=treni.filter(applyFiltro);
   const el=document.getElementById('lista');
-  if(!el) return;
+  const attivi = getLavori();
   if(!fl.length){
-    el.innerHTML=`<div class="empty">${LAVORI.fase===2?'Nessun treno fino al 26 luglio 2026\n(Fase 2 lavori — bus sostitutivi)':'Nessun treno corrispondente\nai filtri selezionati'}</div>`;
+    el.innerHTML=`<div class="empty">${attivi.fase===2?attivi.msg:'Nessun transito rilevato nelle prossime 3 ore'}</div>`;
     return;
   }
   el.innerHTML=fl.map((t,i)=>{
-    const col=colMin(t);
     const primo=i===0;
-    return`<div class="t-card${primo?' primo':''}" style="${primo?'background:'+col+'08;':''}">
+    return`<div class="t-card" style="${primo?'border-left-color:var(--ink);background:rgba(0,0,0,0.02)':''}">
       <div class="t-left">
-        ${t.min<0?`<span style="font-size:22px">✓</span>`
-          :`<span class="t-min-num" style="font-size:${primo?28:20}px;color:${col}">${t.min}</span>
-            <span class="t-min-lbl">min</span>`}
+        ${t.min<0?`<span style="font-size:20px;color:var(--green)">✓</span>`
+          :`<span class="t-min-num" style="color:${t.isLive?'var(--green)':'var(--ink)'}">${t.min}</span><span class="t-min-lbl">min</span>`}
       </div>
       <div class="t-right">
         <div class="t-top-row">
-          <span class="chip ${t.tipo==='Merci'?'chip-merci':'chip-sfm2'}">${t.tipo==='Merci'?'Merci':'SFM2'}</span>
+          <span class="chip ${t.isLive?'chip-live':(t.tipo==='Merci'?'chip-merci':'chip-sfm2')}">${t.tipo}</span>
           <span class="t-numero">${t.numero}</span>
-          <span class="t-dir ${t.dir==='Chivasso'?'dir-chi':'dir-pin'}">${t.dir==='Chivasso'?'▶ Chivasso':t.dir==='Pinerolo'?'◀ Pinerolo':'?'}</span>
+          <span class="t-dir">${t.dir==='Chivasso'?'▶ Chivasso':'◀ Pinerolo'}</span>
           ${t.ritardo>0?`<span class="chip chip-rit">+${t.ritardo}′</span>`:''}
-          ${t.note?`<span class="chip chip-note">${t.note}</span>`:''}
         </div>
         <div class="t-bot-row">
           <span class="t-ora">${t.oraPL}</span>
-          <span class="t-barriere">🚧 ${t.barDown}–${t.barUp} · ~4 min</span>
+          <span class="t-barriere">Finestra sbarre: ${t.barDown} – ${t.barUp}</span>
         </div>
       </div>
     </div>`;
   }).join('');
-}
-
-function renderBanner(){
-  const b=document.getElementById('banner');
-  if(!b) return;
-  if(!LAVORI.msg){b.style.display='none';return;}
-  b.style.display='block';
-  b.style.background=LAVORI.col+'12';
-  b.style.borderBottomColor=LAVORI.col+'30';
-  const txt=document.getElementById('banner-txt');
-  if(txt) {
-    txt.style.color=LAVORI.col;
-    txt.textContent=LAVORI.msg;
-  }
-}
-
-function renderStorico(){
-  const sto=loadStorico();
-  const el=document.getElementById('storico-list');
-  if(!el) return;
-  if(!sto.length){
-    el.innerHTML='<div class="empty" style="padding:16px 0">Nessuna segnalazione ancora</div>';
-  } else {
-    el.innerHTML=[...sto].reverse().map((s,i)=>`
-      <div class="sto-item">
-        <div>
-          <div class="sto-time">${s.ora}</div>
-          <div class="sto-meta">${new Date(s.ts).toLocaleDateString('it-IT')} · ${s.dir||'Chivasso'}</div>
-        </div>
-        <div class="sto-right">
-          <span class="sto-chip ${s.tipo==='Merci'?'sto-merci':s.manuale?'sto-manual':'sto-sfm2'}">${s.tipo}</span>
-          <button class="btn-del" onclick="eliminaSegnalazione(${sto.length-1-i})">✕</button>
-        </div>
-      </div>`).join('');
-  }
-  const p=calcolaPattern(sto);
-  const pw=document.getElementById('pattern-wrap');
-  if(pw) {
-    if(p){pw.style.display='block';document.getElementById('pattern-txt').textContent=p;}
-    else pw.style.display='none';
-  }
 }
 
 function setTab(t){
@@ -791,104 +700,98 @@ function setTab(t){
   document.getElementById('btn-segnala').className='t-pill '+(t==='segnala'?'on':'off');
   document.getElementById('screen-monitor').style.display=t==='monitor'?'flex':'none';
   document.getElementById('screen-segnala').style.display=t==='segnala'?'block':'none';
-  if(t==='segnala')renderStorico();
+  if(t==='segnala') renderStorico();
 }
 
-/* Gestione dei filtri cumulativi */
-function setFiltroDirezione(d){
-  filtroDirezione = d;
-  document.getElementById('f-dir-tutti').className = 'f-chip ' + (d === 'tutti' ? 'on' : 'off');
-  document.getElementById('f-dir-chi').className = 'f-chip ' + (d === 'Chivasso' ? 'on' : 'off');
-  document.getElementById('f-dir-pin').className = 'f-chip ' + (d === 'Pinerolo' ? 'on' : 'off');
-  aggiornaMonitor();
-}
-
-function setFiltroTipo(t){
-  filtroTipo = t;
-  document.getElementById('f-tipo-tutti').className = 'f-chip ' + (t === 'tutti' ? 'on' : 'off');
-  document.getElementById('f-tipo-sfm2').className = 'f-chip ' + (t === 'SFM2' ? 'on' : 'off');
-  document.getElementById('f-tipo-merci').className = 'f-chip ' + (t === 'Merci' ? 'on' : 'off');
-  aggiornaMonitor();
+function setFiltro(f){
+  filtro=f;
+  document.querySelectorAll('.f-chip').forEach(b=>b.className='f-chip '+(b.dataset.f===f?'on':'off'));
+  engineTick();
 }
 
 function segnalaOra(){
   const n=new Date();
   const ora=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');
   const sto=loadStorico();
-  sto.push({ora,ts:n.toISOString(),tipo:document.getElementById('seg-tipo').value,dir:document.getElementById('seg-dir').value,manuale:false});
+  sto.push({ora,ts:n.toISOString(),tipo:document.getElementById('seg-tipo').value,dir:document.getElementById('seg-dir').value});
   saveStorico(sto);
-  flash('✓ Transito registrato — '+ora);
-  renderStorico();
+  flash('✓ Aggiornato! Treno visibile sulla mappa.');
+  setTab('monitor');
 }
 
 function salvaSegnalazione(){
   const ora=document.getElementById('seg-ora').value;
-  if(!ora){return;}
+  if(!ora) return;
   const sto=loadStorico();
-  sto.push({ora,ts:new Date().toISOString(),tipo:document.getElementById('seg-tipo').value,dir:document.getElementById('seg-dir').value,manuale:true});
+  sto.push({ora,ts:new Date().toISOString(),tipo:document.getElementById('seg-tipo').value,dir:document.getElementById('seg-dir').value});
   saveStorico(sto);
-  flash('✓ Segnalazione salvata');
+  flash('✓ Salvato nello storico');
   renderStorico();
 }
 
 function eliminaSegnalazione(idx){
-  const sto=loadStorico();sto.splice(idx,1);saveStorico(sto);renderStorico();
+  const sto=loadStorico();sto.splice(idx,1);saveStorico(sto);renderStorico();engineTick();
 }
 
 function flash(msg){
-  const f=document.getElementById('flash');
-  if(!f) return;
-  f.textContent=msg;f.classList.add('show');
-  setTimeout(()=>f.classList.remove('show'),2200);
+  const f=document.getElementById('flash');f.textContent=msg;f.classList.add('show');
+  setTimeout(()=>f.classList.remove('show'),2000);
 }
 
+/* API PROXY VIAGGIATRENO */
 async function fetchRitardi(){
   try{
     const now=new Date();
     const ts=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')
       +'T'+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0')+':00';
     const url='https://corsproxy.io/?https://www.viaggiatreno.it/infomobilita/resteasy/viaggiatreno/partenze/S04203/'+encodeURIComponent(ts);
-    const r=await fetch(url,{signal:AbortSignal.timeout(8000)});
-    if(!r.ok)throw new Error();
+    const r=await fetch(url,{signal:AbortSignal.timeout(6000)});
+    if(!r.ok) throw new Error();
     const data=await r.json();
-    (data||[]).forEach(t=>{if(t.numeroTreno!=null&&t.ritardo!=null)RITARDI[String(t.numeroTreno)]=t.ritardo;});
-    const li=document.getElementById('live-ind');
-    if(li) { li.textContent='● live';li.className='h-live live-on'; }
+    (data||[]).forEach(t=>{if(t.numeroTreno!=null&&t.ritardo!=null) RITARDI[String(t.numeroTreno)]=t.ritardo;});
+    document.getElementById('live-ind').textContent='● live rfi';
+    document.getElementById('live-ind').className='h-live live-on';
   }catch{
-    const li=document.getElementById('live-ind');
-    if(li) { li.textContent='● stimato';li.className='h-live live-off'; }
+    document.getElementById('live-ind').textContent='● stimato';
+    document.getElementById('live-ind').className='h-live live-off';
   }
 }
 
-function aggiornaMonitor(){
-  const treni=buildTreni();
-  const chiuso=renderStato(treni);
-  renderMappa(treni,chiuso);
+function renderStorico(){
+  const sto=loadStorico();
+  const el=document.getElementById('storico-list');
+  if(!sto.length){el.innerHTML='<div class="empty">Nessun transito registrato oggi</div>';return;}
+  el.innerHTML=[...sto].reverse().map((s,i)=>`
+    <div class="sto-item">
+      <div><div class="sto-time">${s.ora}</div><div class="sto-meta">Direzione: ${s.dir}</div></div>
+      <div class="sto-right"><span class="sto-chip sto-sfm2">${s.tipo}</span><button class="btn-del" onclick="eliminaSegnalazione(${sto.length-1-i})">✕</button></div>
+    </div>`).join('');
+}
+
+/* LOOP PRINCIPALE COMPLETO (1Hz) */
+function engineTick(){
+  const treni = buildTreni();
+  const chiuso = renderStato(treni);
+  renderMappa(treni.filter(applyFiltro), chiuso);
   renderLista(treni);
 }
 
-const _n=new Date();
-const segOraInput = document.getElementById('seg-ora');
-if(segOraInput) {
-  segOraInput.value=String(_n.getHours()).padStart(2,'0')+':'+String(_n.getMinutes()).padStart(2,'0');
-}
-
-renderBanner();
-aggiornaMonitor();
-
 setInterval(()=>{
   const n=new Date();
-  const clEl = document.getElementById('clock');
-  if(clEl) {
-    clEl.textContent=
-      String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')+':'+String(n.getSeconds()).padStart(2,'0');
-  }
-},1000);
+  document.getElementById('clock').textContent = String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')+':'+String(n.getSeconds()).padStart(2,'0');
+  engineTick();
+}, 1000);
 
-setInterval(aggiornaMonitor,10000);
+const _n=new Date();
+document.getElementById('seg-ora').value=String(_n.getHours()).padStart(2,'0')+':'+String(_n.getMinutes()).padStart(2,'0');
+
+const b=document.getElementById('banner');
+const attivi = getLavori();
+if(attivi.msg){b.style.display='block';b.style.background=attivi.col+'12';document.getElementById('banner-txt').textContent=attivi.msg;document.getElementById('banner-txt').style.color=attivi.col;}
 
 fetchRitardi();
-setInterval(fetchRitardi,60000);
+setInterval(fetchRitardi, 45000);
+engineTick();
 </script>
 </body>
 </html>
