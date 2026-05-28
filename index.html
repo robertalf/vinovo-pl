@@ -565,7 +565,7 @@ function renderMappa(treni,plChiuso){
 function getLavori(){
   const d=new Date();
   if(d>=new Date('2026-06-15')&&d<=new Date('2026-07-26'))
-    return{fase:2,msg:'⚠ Fase 2 lavori (15 giu–26 lugh 2026): nessun treno al P.L. di Vinovo. Bus sostitutivi Pinerolo ↔ Torino Lingotto.',col:'#C8321A'};
+    return{fase:2,msg:'⚠ Fase 2 lavori (15 giu–26 lug 2026): nessun treno al P.L. di Vinovo. Bus sostitutivi Pinerolo ↔ Torino Lingotto.',col:'#C8321A'};
   if(d>=new Date('2026-05-09')&&d<=new Date('2026-06-14'))
     return{fase:1,msg:'⚠ Fase 1 lavori (9 mag–14 giu 2026): sospensione Pinerolo–None. Vinovo servita regolarmente.',col:'#C87010'};
   return{fase:0,msg:null,col:null};
@@ -802,7 +802,7 @@ function salvaSegnalazione(){
   renderStorico();
 }
 
-function自由 eliminaSegnalazione(idx){
+function eliminaSegnalazione(idx){
   const sto=loadStorico();sto.splice(idx,1);saveStorico(sto);renderStorico();
 }
 
