@@ -3,85 +3,67 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-<meta name="apple-mobile-web-app-capable" content="yes"/>
-<meta name="theme-color" content="#F7F4EF"/>
 <title>P.L. Vinovo</title>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <style>
-:root { --paper:#F7F4EF; --ink:#1C1814; --blue:#1A5A9A; --merci:#8A4A10; --red:#C8321A; --green:#1A7A3C; --border:#D8D0C4; }
-body { margin:0; background:var(--paper); font-family:'DM Mono',monospace; color:var(--ink); overflow:hidden; }
-#app { width:100%; height:100dvh; display:flex; flex-direction:column; max-width:480px; margin:0 auto; }
-#header { padding:20px; border-bottom:1px solid var(--ink); }
-.h-title { font-family:'Fraunces',serif; font-size:24px; font-weight:700; }
-#map-wrap { flex-shrink:0; background:#EEF2F8; border-bottom:1px solid var(--border); position:relative; }
-#map-svg { display:block; width:100%; height:auto; }
-#lista { flex:1; overflow-y:auto; padding:10px 0; }
-.t-card { display:flex; align-items:center; gap:15px; padding:12px 20px; border-bottom:1px solid #E4DDD3; }
-.t-min { font-family:'Fraunces',serif; font-size:20px; font-weight:700; width:40px; }
-.t-info { flex:1; }
-.chip { font-size:8px; padding:2px 6px; border-radius:4px; text-transform:uppercase; margin-right:5px; }
-.chip-sfm2 { background:#E4EEF8; color:var(--blue); }
-.chip-merci { background:#FBF0E0; color:var(--merci); }
+  :root { --paper:#F7F4EF; --ink:#1C1814; --blue:#1A5A9A; --merci:#8A4A10; --border:#D8D0C4; }
+  body { margin:0; background:var(--paper); font-family:'DM Mono',monospace; color:var(--ink); }
+  #app { width:100%; max-width:480px; margin:0 auto; display:flex; flex-direction:column; height:100dvh; }
+  #map-wrap { background:#EEF2F8; border-bottom:1px solid var(--border); }
+  #map-svg { display:block; width:100%; }
+  .lista { flex:1; overflow-y:auto; padding:10px 20px; }
+  .item { display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border); font-size:12px; }
+  .treno-tipo { font-weight:bold; }
+  .treno-tipo.merci { color:var(--merci); }
 </style>
 </head>
 <body>
 <div id="app">
-  <div id="header">
-    <div class="h-title">P.L. Vinovo</div>
-    <div id="stato-txt" style="font-size:10px; margin-top:5px;">Caricamento...</div>
-  </div>
   <div id="map-wrap">
-    <svg id="map-svg" viewBox="0 0 360 230" xmlns="http://www.w3.org/2000/svg"></svg>
+    <svg id="map-svg" viewBox="0 0 360 150" xmlns="http://www.w3.org/2000/svg"></svg>
   </div>
-  <div id="lista"></div>
+  <div class="lista" id="lista-treni"></div>
 </div>
 
 <script>
-const MW=360, MH=230;
-const BBOX={lonMin:7.25,lonMax:7.70,latMin:44.87,latMax:45.08};
-function proj(lat,lon){ return { x:((lon-BBOX.lonMin)/(BBOX.lonMax-BBOX.lonMin))*MW, y:MH-((lat-BBOX.latMin)/(BBOX.latMax-BBOX.latMin))*MH }; }
-const PL=proj(44.9480,7.6320);
+const MW=360, MH=150;
 const STAZ=[
-  {lat:44.8875, lon:7.3292}, {lat:44.9130, lon:7.4660}, {lat:44.9310, lon:7.5290},
-  {lat:44.9611, lon:7.5990}, {lat:44.9914, lon:7.6422}, {lat:45.0298, lon:7.6680}
+  {label:'Pinerolo', x:20, y:75}, {label:'None', x:120, y:75}, 
+  {label:'Vinovo', x:180, y:75}, {label:'Lingotto', x:300, y:75}
 ];
-const RAIL_PTS=[proj(44.8875,7.3292), proj(44.9480,7.6320), proj(45.0709,7.6658)];
 
 function renderMappa(treni) {
-  let h = `<rect width="${MW}" height="${MH}" fill="#EEF2F8"/>`;
-  h += `<polyline points="${RAIL_PTS.map(p=>p.x+','+p.y).join(' ')}" fill="none" stroke="#5C4A30" stroke-width="2"/>`;
-  STAZ.forEach(s => { const p=proj(s.lat,s.lon); h+=`<circle cx="${p.x}" cy="${p.y}" r="2" fill="black"/>`; });
-  h += `<circle cx="${PL.x}" cy="${PL.y}" r="5" fill="red" stroke="white" stroke-width="2"/>`;
+  let h = `<polyline points="20,75 340,75" fill="none" stroke="#5C4A30" stroke-width="1.5"/>`;
   
+  // Stazioni: solo punti, niente riquadri
+  STAZ.forEach(s => {
+    h += `<circle cx="${s.x}" cy="${s.y}" r="1.5" fill="black"/>`;
+    h += `<text x="${s.x}" y="${s.y+12}" text-anchor="middle" font-size="7" fill="#5C5448">${s.label}</text>`;
+  });
+
+  // Vinovo PL
+  h += `<circle cx="180" cy="75" r="3" fill="red" stroke="white" stroke-width="1"/>`;
+
+  // Treni: rettangolini puliti
   treni.forEach(t => {
-    // Posizione semplificata basata sui minuti (linear interpolator)
-    const x = PL.x + (t.dir==='Chivasso' ? -t.min*2 : t.min*2);
-    const y = PL.y;
-    h += `<rect x="${x-10}" y="${y-5}" width="20" height="10" rx="2" fill="${t.tipo==='Merci'?'#8A4A10':'#1A5A9A'}"/>`;
+    const x = 180 + (t.dir==='Chivasso' ? -t.min*2 : t.min*2);
+    h += `<rect x="${x-6}" y="68" width="12" height="6" rx="1" fill="${t.tipo==='Merci'?'#8A4A10':'#1A5A9A'}"/>`;
   });
   document.getElementById('map-svg').innerHTML = h;
 }
 
-function buildTreni() {
-  // Simulazione dati per test visualizzazione
-  return [
+function aggiorna() {
+  const treni = [
     {numero:'26202', tipo:'SFM2', min:10, dir:'Chivasso'},
     {numero:'MCi-01', tipo:'Merci', min:25, dir:'Pinerolo'}
   ];
-}
-
-function aggiorna() {
-  const treni = buildTreni();
   renderMappa(treni);
-  document.getElementById('lista').innerHTML = treni.map(t => `
-    <div class="t-card">
-      <div class="t-min">${t.min}'</div>
-      <div class="t-info">
-        <span class="chip ${t.tipo==='Merci'?'chip-merci':'chip-sfm2'}">${t.tipo}</span>
-        <strong>${t.numero}</strong> · Verso ${t.dir}
-      </div>
-    </div>`).join('');
-  document.getElementById('stato-txt').textContent = "Sistema operativo · Monitoraggio attivo";
+  document.getElementById('lista-treni').innerHTML = treni.map(t => `
+    <div class="item">
+      <span class="treno-tipo ${t.tipo==='Merci'?'merci':''}">${t.tipo} ${t.numero}</span>
+      <span>${t.min} min · verso ${t.dir}</span>
+    </div>
+  `).join('');
 }
 
 setInterval(aggiorna, 5000);
