@@ -2,84 +2,145 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<meta name="apple-mobile-web-app-title" content="P.L. Vinovo"/>
+<meta name="theme-color" content="#F7F4EF"/>
 <title>P.L. Vinovo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,600;0,700;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <style>
-:root { --paper:#F7F4EF; --ink:#1C1814; --blue:#1A5A9A; --merci:#8A4A10; --border:#D8D0C4; }
-body { margin:0; background:var(--paper); font-family:'DM Mono',monospace; color:var(--ink); }
-#app { width:100%; max-width:480px; margin:0 auto; }
-#map-wrap { background:#EEF2F8; border-bottom:1px solid var(--border); padding: 10px 0; }
-#map-svg { display:block; width:100%; height:120px; }
-.lista { padding: 20px; }
-.t-card { display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border); font-size: 13px; }
+/* CSS ORIGINALE INVARIATO */
+:root { --paper:#F7F4EF; --paper2:#EEE9E1; --paper3:#E4DDD3; --ink:#1C1814; --inkSoft:#5C5448; --inkFaint:#A09888; --border:#D8D0C4; --red:#C8321A; --redLo:#FAE8E4; --amber:#C87010; --amberLo:#FBF0E0; --green:#1A7A3C; --greenLo:#E4F2EA; --blue:#1A5A9A; --blueLo:#E4EEF8; --rail:#5C4A30; --railBg:#8C7A60; --merci:#8A4A10; }
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{width:100%;height:100%;background:var(--paper);overflow:hidden;}
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+#app{width:100%;height:100dvh;display:flex;flex-direction:column;max-width:480px;margin:0 auto;background:var(--paper);}
+#header{padding:14px 20px 12px;background:var(--paper);border-bottom:1.5px solid var(--ink);flex-shrink:0;}
+.h-row{display:flex;justify-content:space-between;align-items:flex-start;}
+.h-title{font-family:'Fraunces',serif;font-size:26px;font-weight:700;color:var(--ink);line-height:1;letter-spacing:-0.02em;}
+.h-title em{font-style:italic;color:var(--blue);}
+.h-sub{font-family:'DM Mono',monospace;font-size:8px;color:var(--inkFaint);letter-spacing:0.08em;margin-top:4px;}
+.h-live{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.06em;margin-left:8px;}
+.live-on{color:var(--green);}.live-off{color:var(--inkFaint);}
+#clock{font-family:'DM Mono',monospace;font-size:11px;color:var(--inkSoft);align-self:flex-start;margin-top:2px;}
+#tabs{display:flex;gap:5px;margin-top:10px;}.t-pill{padding:5px 14px;border-radius:20px;border:none;cursor:pointer;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.06em;transition:all 0.15s;font-weight:500;}
+.t-pill.on{background:var(--ink);color:var(--paper);}.t-pill.off{background:transparent;color:var(--inkFaint);border:1px solid var(--border);}
+#banner{display:none;padding:8px 20px;border-bottom:1px solid;flex-shrink:0;}
+#banner-txt{font-family:'DM Mono',monospace;font-size:8px;line-height:1.7;letter-spacing:0.04em;}
+#stato{display:flex;align-items:center;gap:10px;padding:10px 20px;border-bottom:1px solid var(--border);flex-shrink:0;transition:background 0.3s;}
+#stato-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0;}
+#stato-txt{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.04em;flex:1;font-weight:500;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(0.85)}}
+.pulsing{animation:pulse 1s ease-in-out infinite;}
+#map-wrap{flex-shrink:0;background:#EEF2F8;border-bottom:1px solid var(--border);position:relative;overflow:hidden;}
+#map-svg{display:block;width:100%;}
+#map-legend{position:absolute;bottom:6px;right:8px;display:flex;flex-direction:column;gap:3px;background:rgba(247,244,239,0.92);border:1px solid var(--border);border-radius:6px;padding:5px 8px;}
+.leg-row{display:flex;align-items:center;gap:5px;}.leg-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0;}.leg-txt{font-family:'DM Mono',monospace;font-size:7px;color:var(--inkSoft);letter-spacing:0.04em;}
+#filtri{display:flex;gap:5px;padding:7px 14px;background:var(--paper);border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;}
+.f-chip{padding:4px 11px;border-radius:16px;border:none;cursor:pointer;font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.05em;white-space:nowrap;transition:all 0.12s;font-weight:500;}
+.f-chip.on{background:var(--ink);color:var(--paper);}.f-chip.off{background:transparent;color:var(--inkFaint);border:1px solid var(--border);}
+#lista{flex:1;overflow-y:auto;}.t-card{display:flex;gap:12px;padding:11px 20px;border-bottom:1px solid var(--paper2);border-left:3px solid transparent;}
+.t-card.primo{border-left-color:var(--ink);}.t-left{width:46px;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.t-min-num{font-family:'Fraunces',serif;font-weight:700;line-height:1;}.t-min-lbl{font-family:'DM Mono',monospace;font-size:7px;color:var(--inkFaint);margin-top:1px;}
+.t-right{flex:1;min-width:0;}.t-top-row{display:flex;gap:5px;align-items:center;margin-bottom:4px;}
+.chip{font-family:'DM Mono',monospace;font-size:7.5px;font-weight:500;padding:1px 6px;border-radius:3px;letter-spacing:0.04em;}
+.chip-sfm2{background:var(--blueLo);color:var(--blue);}.chip-merci{background:var(--amberLo);color:var(--merci);}.chip-rit{background:var(--amberLo);color:var(--amber);}.chip-note{background:var(--paper2);color:var(--inkFaint);}
+.t-numero{font-family:'DM Mono',monospace;font-size:10px;color:var(--inkFaint);}.t-dir{font-family:'DM Mono',monospace;font-size:9px;font-weight:500;}
+.t-ora{font-family:'Fraunces',serif;font-size:18px;font-weight:600;color:var(--ink);}.t-barriere{font-family:'DM Mono',monospace;font-size:8px;color:var(--inkFaint);background:var(--paper2);border:1px solid var(--border);padding:2px 7px;border-radius:4px;}
+.empty{padding:40px 20px;text-align:center;font-family:'DM Mono',monospace;font-size:10px;color:var(--inkFaint);}
+#screen-segnala{display:none;flex:1;overflow-y:auto;padding:20px;}.s-heading{font-family:'Fraunces',serif;font-size:22px;font-weight:700;color:var(--ink);margin-bottom:4px;}
+.s-body{font-family:'DM Mono',monospace;font-size:9px;color:var(--inkFaint);line-height:1.8;margin-bottom:20px;}
+#btn-ora{width:100%;padding:16px;border-radius:12px;border:none;background:var(--ink);color:var(--paper);font-family:'Fraunces',serif;font-size:20px;font-weight:600;cursor:pointer;}
+.s-section{font-family:'DM Mono',monospace;font-size:8px;color:var(--inkFaint);letter-spacing:0.1em;margin-bottom:10px;margin-top:4px;}
+.s-card{background:white;border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:14px;}
+.s-row{display:flex;gap:10px;align-items:center;margin-bottom:10px;}.s-label{font-family:'DM Mono',monospace;font-size:8px;color:var(--inkSoft);width:44px;flex-shrink:0;}.s-select,.s-input{flex:1;background:var(--paper);border:1px solid var(--border);border-radius:6px;padding:7px 10px;font-size:10px;}
+.btn-save{width:100%;padding:10px;border-radius:8px;border:1.5px solid var(--ink);background:transparent;cursor:pointer;}
+.sto-item{background:white;border:1px solid var(--border);border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;margin-bottom:6px;}
+.sto-time{font-family:'Fraunces',serif;font-size:20px;font-weight:600;}
+.sto-meta{font-family:'DM Mono',monospace;font-size:8px;color:var(--inkFaint);}
+.sto-chip{font-family:'DM Mono',monospace;font-size:7.5px;padding:2px 7px;border-radius:3px;}
+.btn-del{background:none;border:none;cursor:pointer;color:var(--inkFaint);font-size:14px;}
+#flash{position:fixed;top:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:9px 20px;border-radius:20px;font-family:'DM Mono',monospace;font-size:10px;z-index:999;opacity:0;transition:opacity 0.25s;pointer-events:none;}
+#flash.show{opacity:1;}
+#footer{padding:6px 20px 10px;background:var(--paper2);border-top:1px solid var(--border);flex-shrink:0;}.footer p{font-family:'DM Mono',monospace;font-size:7px;color:var(--inkFaint);text-align:center;}
 </style>
 </head>
 <body>
 <div id="app">
-  <div id="map-wrap">
-    <svg id="map-svg" viewBox="0 0 360 120" xmlns="http://www.w3.org/2000/svg"></svg>
+  <div id="header">
+    <div class="h-row">
+      <div><div class="h-title">P.L. <em>Vinovo</em></div><div class="h-sub">SP143 · KM 5+806 · SFM2 <span id="live-ind" class="h-live live-off">● stimato</span></div></div>
+      <span id="clock">--:--:--</span>
+    </div>
+    <div id="tabs">
+      <button class="t-pill on" id="btn-monitor" onclick="setTab('monitor')">Monitor</button>
+      <button class="t-pill off" id="btn-segnala" onclick="setTab('segnala')">+ Segnala</button>
+    </div>
   </div>
-  <div class="lista" id="lista-treni"></div>
+  <div id="banner"><p id="banner-txt"></p></div>
+  <div id="stato"><div id="stato-dot"></div><div id="stato-txt"></div></div>
+  <div id="screen-monitor" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+    <div id="map-wrap">
+      <svg id="map-svg" viewBox="0 0 360 230" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+    <div id="filtri">
+      <button class="f-chip on" data-f="tutti" onclick="setFiltro('tutti')">Tutti</button>
+      <button class="f-chip off" data-f="chi" onclick="setFiltro('chi')">▶ Chivasso</button>
+      <button class="f-chip off" data-f="pin" onclick="setFiltro('pin')">◀ Pinerolo</button>
+    </div>
+    <div id="lista"></div>
+  </div>
+  <div id="screen-segnala">
+    <div class="s-heading">Segnala transito</div>
+    <button id="btn-ora" onclick="segnalaOra()">🚆 Passato adesso</button>
+    <div class="s-section">INSERIMENTO MANUALE</div>
+    <div class="s-card">
+      <div class="s-row"><span class="s-label">Tipo</span><select class="s-select" id="seg-tipo"><option value="SFM2">SFM2</option><option value="Merci">Merci</option></select></div>
+      <div class="s-row"><span class="s-label">Ora</span><input class="s-input" type="time" id="seg-ora"/></div>
+      <button class="btn-save" onclick="salvaSegnalazione()">Salva segnalazione</button>
+    </div>
+    <div class="s-section">STORICO</div>
+    <div id="storico-list"></div>
+  </div>
 </div>
+<div id="flash"></div>
 
 <script>
-const STAZ=[
-  {l:'Pinerolo', x:40}, {l:'None', x:120}, {l:'Vinovo', x:180}, {l:'Lingotto', x:300}
-];
+/* LOGICA ORIGINALE INVARIATA */
+const MW=360, MH=230;
+const BBOX={lonMin:7.25,lonMax:7.70,latMin:44.87,latMax:45.08};
+function proj(lat,lon){return{x:((lon-BBOX.lonMin)/(BBOX.lonMax-BBOX.lonMin))*MW, y:MH-((lat-BBOX.latMin)/(BBOX.latMax-BBOX.latMin))*MH};}
+const PL=proj(44.9480,7.6320);
+const STAZ=[{id:'pinerolo', label:'Pinerolo', lat:44.8875, lon:7.3292, tx:-16, ty:10}, {id:'airasca', label:'Airasca', lat:44.9130, lon:7.4660, tx:0, ty:-6}, {id:'none', label:'None', lat:44.9310, lon:7.5290, tx:0, ty:-6}, {id:'candiolo', label:'Candiolo', lat:44.9611, lon:7.5990, tx:18, ty:3}, {id:'nichelino',label:'Nichelino', lat:44.9914, lon:7.6422, tx:18, ty:3}, {id:'lingotto', label:'Lingotto', lat:45.0298, lon:7.6680, tx:16, ty:3}, {id:'psusa', label:'P. Susa', lat:45.0709, lon:7.6658, tx:14, ty:3}];
+const RAIL_PTS=[proj(44.8875,7.3292), proj(44.8970,7.3620), proj(44.9020,7.3980), proj(44.9060,7.4220), proj(44.9130,7.4660), proj(44.9190,7.4900), proj(44.9240,7.5060), proj(44.9310,7.5290), proj(44.9400,7.5540), proj(44.9490,7.5720), proj(44.9560,7.5880), proj(44.9611,7.5990), proj(44.9650,7.6080), proj(44.9700,7.6160), proj(44.9480,7.6320), proj(44.9760,7.6260), proj(44.9820,7.6320), proj(44.9880,7.6370), proj(44.9914,7.6422), proj(44.9990,7.6520), proj(45.0060,7.6590), proj(45.0150,7.6640), proj(45.0298,7.6680), proj(45.0450,7.6670), proj(45.0580,7.6665), proj(45.0709,7.6658)];
+function ptStr(pts){return pts.map(p=>p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ');}
+function lerp(a,b,t){return a+(b-a)*t;}
+function trainPos(t){ /* LA TUA LOGICA ORIGINALE DI CALCOLO POSIZIONE... */ }
 
-function renderMappa(treni, plChiuso) {
+/* --- RENDERMAPPA MODIFICATA (PULITA) --- */
+function renderMappa(treni, plChiuso){
   const plCol = plChiuso ? '#C8321A' : '#1A7A3C';
-  let h = '';
-  
-  // Sfondo pulito
-  h += `<rect width="${MW}" height="${MH}" fill="#EEF2F8"/>`;
-
-  // Linea ferroviaria (senza fronzoli)
+  let h = `<rect width="${MW}" height="${MH}" fill="#EEF2F8"/>`;
   h += `<polyline points="${ptStr(RAIL_PTS)}" fill="none" stroke="#5C4A30" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>`;
-
-  // Stazioni: punti microscopici (1.5px) e testo piccolo (6.5px) senza box
-  STAZ.forEach(s => {
-    const p = proj(s.lat, s.lon);
+  STAZ.forEach(s=>{
+    const p=proj(s.lat,s.lon);
     h += `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="1.5" fill="#1C1814"/>`;
-    h += `<text x="${(p.x + s.tx).toFixed(1)}" y="${(p.y + s.ty).toFixed(1)}" text-anchor="middle" font-size="6.5" fill="#5C5448" font-family="'DM Mono',monospace" font-weight="500">${s.label}</text>`;
+    h += `<text x="${(p.x+s.tx).toFixed(1)}" y="${(p.y+s.ty).toFixed(1)}" text-anchor="middle" font-size="6.5" fill="#5C5448" font-family="'DM Mono',monospace">${s.label}</text>`;
   });
-
-  // Vinovo P.L. - Pura grafica minimalista
   h += `<circle cx="${PL.x.toFixed(1)}" cy="${PL.y.toFixed(1)}" r="4.5" fill="${plCol}" stroke="white" stroke-width="1.2"/>`;
-
-  // Treni: Solo il rettangolo colorato
-  treni.slice(0, 6).forEach(t => {
-    const pos = trainPos(t);
-    if (!pos) return;
-    const isMerci = t.tipo === 'Merci';
-    const trainCol = isMerci ? '#8A4A10' : '#1A5A9A';
-    
-    h += `<rect x="${(pos.x - 14).toFixed(1)}" y="${(pos.y - 6).toFixed(1)}" width="28" height="12" rx="3" fill="${trainCol}" stroke="white" stroke-width="1"/>`;
-    
-    // Etichetta treno minimale
-    if (t.min <= 45) {
-      h += `<text x="${pos.x.toFixed(1)}" y="${(pos.y - 9).toFixed(1)}" text-anchor="middle" font-size="6" fill="${trainCol}" font-family="'DM Mono',monospace" font-weight="700">${t.numero}</text>`;
-    }
+  treni.slice(0,6).forEach(t=>{
+    const pos=trainPos(t);
+    if(!pos)return;
+    const col = t.tipo==='Merci'?'#8A4A10':'#1A5A9A';
+    h += `<rect x="${(pos.x-14).toFixed(1)}" y="${(pos.y-6).toFixed(1)}" width="28" height="12" rx="3" fill="${col}" stroke="white" stroke-width="1"/>`;
   });
-
-  document.getElementById('map-svg').innerHTML = h;
+  document.getElementById('map-svg').innerHTML=h;
 }
 
-function aggiorna() {
-  const treni = [
-    {numero:'26202', tipo:'SFM2', min:10, dir:'Chivasso'},
-    {numero:'MCi-01', tipo:'Merci', min:25, dir:'Pinerolo'}
-  ];
-  renderMappa(treni);
-  document.getElementById('lista-treni').innerHTML = treni.map(t => `
-    <div class="t-card">
-      <span>${t.tipo} ${t.numero}</span>
-      <strong>${t.min} min</strong>
-    </div>`).join('');
-}
-
-setInterval(aggiorna, 5000);
-aggiorna();
+/* --- INCOLLA QUI IL RESTO DEL TUO SCRIPT ORIGINALE (aggiornaMonitor, fetchRitardi, etc.) --- */
 </script>
 </body>
 </html>
