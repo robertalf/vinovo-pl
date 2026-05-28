@@ -11,136 +11,808 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,600;0,700;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <style>
-/* CSS ORIGINALE INVARIATO */
-:root { --paper:#F7F4EF; --paper2:#EEE9E1; --paper3:#E4DDD3; --ink:#1C1814; --inkSoft:#5C5448; --inkFaint:#A09888; --border:#D8D0C4; --red:#C8321A; --redLo:#FAE8E4; --amber:#C87010; --amberLo:#FBF0E0; --green:#1A7A3C; --greenLo:#E4F2EA; --blue:#1A5A9A; --blueLo:#E4EEF8; --rail:#5C4A30; --railBg:#8C7A60; --merci:#8A4A10; }
+:root {
+  --paper:    #F7F4EF;
+  --paper2:   #EEE9E1;
+  --paper3:   #E4DDD3;
+  --ink:      #1C1814;
+  --inkSoft:  #5C5448;
+  --inkFaint: #A09888;
+  --border:   #D8D0C4;
+  --red:      #C8321A;
+  --redLo:    #FAE8E4;
+  --amber:    #C87010;
+  --amberLo:  #FBF0E0;
+  --green:    #1A7A3C;
+  --greenLo:  #E4F2EA;
+  --blue:     #1A5A9A;
+  --blueLo:   #E4EEF8;
+  --rail:     #5C4A30;
+  --railBg:   #8C7A60;
+  --merci:    #8A4A10;
+}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{width:100%;height:100%;background:var(--paper);overflow:hidden;}
 ::-webkit-scrollbar{width:3px;}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
-#app{width:100%;height:100dvh;display:flex;flex-direction:column;max-width:480px;margin:0 auto;background:var(--paper);}
-#header{padding:14px 20px 12px;background:var(--paper);border-bottom:1.5px solid var(--ink);flex-shrink:0;}
+
+#app{
+  width:100%;height:100dvh;
+  display:flex;flex-direction:column;
+  max-width:480px;margin:0 auto;
+  background:var(--paper);
+}
+
+/* ── HEADER ── */
+#header{
+  padding:14px 20px 12px;
+  background:var(--paper);
+  border-bottom:1.5px solid var(--ink);
+  flex-shrink:0;
+}
 .h-row{display:flex;justify-content:space-between;align-items:flex-start;}
-.h-title{font-family:'Fraunces',serif;font-size:26px;font-weight:700;color:var(--ink);line-height:1;letter-spacing:-0.02em;}
+.h-title{
+  font-family:'Fraunces',serif;font-size:26px;font-weight:700;
+  color:var(--ink);line-height:1;letter-spacing:-0.02em;
+}
 .h-title em{font-style:italic;color:var(--blue);}
-.h-sub{font-family:'DM Mono',monospace;font-size:8px;color:var(--inkFaint);letter-spacing:0.08em;margin-top:4px;}
-.h-live{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.06em;margin-left:8px;}
-.live-on{color:var(--green);}.live-off{color:var(--inkFaint);}
-#clock{font-family:'DM Mono',monospace;font-size:11px;color:var(--inkSoft);align-self:flex-start;margin-top:2px;}
-#tabs{display:flex;gap:5px;margin-top:10px;}.t-pill{padding:5px 14px;border-radius:20px;border:none;cursor:pointer;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.06em;transition:all 0.15s;font-weight:500;}
-.t-pill.on{background:var(--ink);color:var(--paper);}.t-pill.off{background:transparent;color:var(--inkFaint);border:1px solid var(--border);}
-#banner{display:none;padding:8px 20px;border-bottom:1px solid;flex-shrink:0;}
+.h-sub{
+  font-family:'DM Mono',monospace;font-size:8px;color:var(--inkFaint);
+  letter-spacing:0.08em;margin-top:4px;
+}
+.h-live{
+  font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.06em;
+  margin-left:8px;
+}
+.live-on{color:var(--green);}
+.live-off{color:var(--inkFaint);}
+
+/* clock */
+#clock{
+  font-family:'DM Mono',monospace;font-size:11px;color:var(--inkSoft);
+  align-self:flex-start;margin-top:2px;
+}
+
+/* tab pills */
+#tabs{display:flex;gap:5px;margin-top:10px;}
+.t-pill{
+  padding:5px 14px;border-radius:20px;border:none;cursor:pointer;
+  font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.06em;
+  transition:all 0.15s;font-weight:500;
+}
+.t-pill.on{background:var(--ink);color:var(--paper);}
+.t-pill.off{background:transparent;color:var(--inkFaint);border:1px solid var(--border);}
+
+/* ── BANNER LAVORI ── */
+#banner{
+  display:none;padding:8px 20px;
+  border-bottom:1px solid;flex-shrink:0;
+}
 #banner-txt{font-family:'DM Mono',monospace;font-size:8px;line-height:1.7;letter-spacing:0.04em;}
-#stato{display:flex;align-items:center;gap:10px;padding:10px 20px;border-bottom:1px solid var(--border);flex-shrink:0;transition:background 0.3s;}
-#stato-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0;}
-#stato-txt{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.04em;flex:1;font-weight:500;}
+
+/* ── STATO PL ── */
+#stato{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 20px;border-bottom:1px solid var(--border);
+  flex-shrink:0;transition:background 0.3s;
+}
+#stato-dot{
+  width:11px;height:11px;border-radius:50%;flex-shrink:0;
+}
+#stato-txt{
+  font-family:'DM Mono',monospace;font-size:10px;
+  letter-spacing:0.04em;flex:1;font-weight:500;
+}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(0.85)}}
 .pulsing{animation:pulse 1s ease-in-out infinite;}
-#map-wrap{flex-shrink:0;background:#EEF2F8;border-bottom:1px solid var(--border);position:relative;overflow:hidden;}
+
+/* ── MAPPA ── */
+#map-wrap{
+  flex-shrink:0;
+  background:#EEF2F8;
+  border-bottom:1px solid var(--border);
+  position:relative;overflow:hidden;
+}
 #map-svg{display:block;width:100%;}
-#map-legend{position:absolute;bottom:6px;right:8px;display:flex;flex-direction:column;gap:3px;background:rgba(247,244,239,0.92);border:1px solid var(--border);border-radius:6px;padding:5px 8px;}
-.leg-row{display:flex;align-items:center;gap:5px;}.leg-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0;}.leg-txt{font-family:'DM Mono',monospace;font-size:7px;color:var(--inkSoft);letter-spacing:0.04em;}
-#filtri{display:flex;gap:5px;padding:7px 14px;background:var(--paper);border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;}
-.f-chip{padding:4px 11px;border-radius:16px;border:none;cursor:pointer;font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.05em;white-space:nowrap;transition:all 0.12s;font-weight:500;}
-.f-chip.on{background:var(--ink);color:var(--paper);}.f-chip.off{background:transparent;color:var(--inkFaint);border:1px solid var(--border);}
-#lista{flex:1;overflow-y:auto;}.t-card{display:flex;gap:12px;padding:11px 20px;border-bottom:1px solid var(--paper2);border-left:3px solid transparent;}
-.t-card.primo{border-left-color:var(--ink);}.t-left{width:46px;display:flex;flex-direction:column;align-items:center;justify-content:center;}
-.t-min-num{font-family:'Fraunces',serif;font-weight:700;line-height:1;}.t-min-lbl{font-family:'DM Mono',monospace;font-size:7px;color:var(--inkFaint);margin-top:1px;}
-.t-right{flex:1;min-width:0;}.t-top-row{display:flex;gap:5px;align-items:center;margin-bottom:4px;}
-.chip{font-family:'DM Mono',monospace;font-size:7.5px;font-weight:500;padding:1px 6px;border-radius:3px;letter-spacing:0.04em;}
-.chip-sfm2{background:var(--blueLo);color:var(--blue);}.chip-merci{background:var(--amberLo);color:var(--merci);}.chip-rit{background:var(--amberLo);color:var(--amber);}.chip-note{background:var(--paper2);color:var(--inkFaint);}
-.t-numero{font-family:'DM Mono',monospace;font-size:10px;color:var(--inkFaint);}.t-dir{font-family:'DM Mono',monospace;font-size:9px;font-weight:500;}
-.t-ora{font-family:'Fraunces',serif;font-size:18px;font-weight:600;color:var(--ink);}.t-barriere{font-family:'DM Mono',monospace;font-size:8px;color:var(--inkFaint);background:var(--paper2);border:1px solid var(--border);padding:2px 7px;border-radius:4px;}
-.empty{padding:40px 20px;text-align:center;font-family:'DM Mono',monospace;font-size:10px;color:var(--inkFaint);}
-#screen-segnala{display:none;flex:1;overflow-y:auto;padding:20px;}.s-heading{font-family:'Fraunces',serif;font-size:22px;font-weight:700;color:var(--ink);margin-bottom:4px;}
-.s-body{font-family:'DM Mono',monospace;font-size:9px;color:var(--inkFaint);line-height:1.8;margin-bottom:20px;}
-#btn-ora{width:100%;padding:16px;border-radius:12px;border:none;background:var(--ink);color:var(--paper);font-family:'Fraunces',serif;font-size:20px;font-weight:600;cursor:pointer;}
-.s-section{font-family:'DM Mono',monospace;font-size:8px;color:var(--inkFaint);letter-spacing:0.1em;margin-bottom:10px;margin-top:4px;}
-.s-card{background:white;border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:14px;}
-.s-row{display:flex;gap:10px;align-items:center;margin-bottom:10px;}.s-label{font-family:'DM Mono',monospace;font-size:8px;color:var(--inkSoft);width:44px;flex-shrink:0;}.s-select,.s-input{flex:1;background:var(--paper);border:1px solid var(--border);border-radius:6px;padding:7px 10px;font-size:10px;}
-.btn-save{width:100%;padding:10px;border-radius:8px;border:1.5px solid var(--ink);background:transparent;cursor:pointer;}
-.sto-item{background:white;border:1px solid var(--border);border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;margin-bottom:6px;}
-.sto-time{font-family:'Fraunces',serif;font-size:20px;font-weight:600;}
-.sto-meta{font-family:'DM Mono',monospace;font-size:8px;color:var(--inkFaint);}
+
+/* legenda mappa */
+#map-legend{
+  position:absolute;bottom:6px;right:8px;
+  display:flex;flex-direction:column;gap:3px;
+  background:rgba(247,244,239,0.92);
+  border:1px solid var(--border);
+  border-radius:6px;padding:5px 8px;
+}
+.leg-row{display:flex;align-items:center;gap:5px;}
+.leg-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
+.leg-txt{font-family:'DM Mono',monospace;font-size:7px;color:var(--inkSoft);letter-spacing:0.04em;}
+
+/* ── FILTRI ── */
+#filtri{
+  display:flex;gap:5px;padding:7px 14px;
+  background:var(--paper);border-bottom:1px solid var(--border);
+  flex-shrink:0;overflow-x:auto;
+}
+#filtri::-webkit-scrollbar{height:0;}
+.f-chip{
+  padding:4px 11px;border-radius:16px;border:none;cursor:pointer;
+  font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.05em;
+  white-space:nowrap;flex-shrink:0;transition:all 0.12s;font-weight:500;
+}
+.f-chip.on{background:var(--ink);color:var(--paper);}
+.f-chip.off{background:transparent;color:var(--inkFaint);border:1px solid var(--border);}
+
+/* ── LISTA ── */
+#lista{flex:1;overflow-y:auto;}
+
+.t-card{
+  display:flex;gap:12px;padding:11px 20px;
+  border-bottom:1px solid var(--paper2);
+  border-left:3px solid transparent;
+  transition:background 0.15s;
+}
+.t-card.primo{border-left-color:var(--ink);}
+
+.t-left{
+  width:46px;flex-shrink:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+.t-min-num{
+  font-family:'Fraunces',serif;font-weight:700;line-height:1;
+}
+.t-min-lbl{
+  font-family:'DM Mono',monospace;font-size:7px;
+  color:var(--inkFaint);margin-top:1px;letter-spacing:0.06em;
+}
+
+.t-right{flex:1;min-width:0;}
+.t-top-row{display:flex;gap:5px;align-items:center;margin-bottom:4px;flex-wrap:wrap;}
+
+.chip{
+  font-family:'DM Mono',monospace;font-size:7.5px;font-weight:500;
+  padding:1px 6px;border-radius:3px;letter-spacing:0.04em;
+}
+.chip-sfm2{background:var(--blueLo);color:var(--blue);border:1px solid #B8D0EC;}
+.chip-merci{background:var(--amberLo);color:var(--merci);border:1px solid #E0C090;}
+.chip-rit{background:var(--amberLo);color:var(--amber);border:1px solid #E0C090;}
+.chip-note{background:var(--paper2);color:var(--inkFaint);border:1px solid var(--border);}
+
+.t-numero{font-family:'DM Mono',monospace;font-size:10px;color:var(--inkFaint);}
+.t-dir{font-family:'DM Mono',monospace;font-size:9px;font-weight:500;}
+.dir-chi{color:var(--blue);}
+.dir-pin{color:#8A6010;}
+
+.t-bot-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.t-ora{
+  font-family:'Fraunces',serif;font-size:18px;font-weight:600;
+  color:var(--ink);letter-spacing:-0.01em;
+}
+.t-barriere{
+  font-family:'DM Mono',monospace;font-size:8px;color:var(--inkFaint);
+  background:var(--paper2);border:1px solid var(--border);
+  padding:2px 7px;border-radius:4px;
+}
+
+.empty{
+  padding:40px 20px;text-align:center;
+  font-family:'DM Mono',monospace;font-size:10px;
+  color:var(--inkFaint);line-height:2.2;letter-spacing:0.04em;
+}
+
+/* ── SCHERMATA SEGNALA ── */
+#screen-segnala{
+  display:none;flex:1;overflow-y:auto;
+  padding:20px;
+}
+.s-heading{
+  font-family:'Fraunces',serif;font-size:22px;font-weight:700;
+  color:var(--ink);margin-bottom:4px;letter-spacing:-0.02em;
+}
+.s-body{
+  font-family:'DM Mono',monospace;font-size:9px;color:var(--inkFaint);
+  line-height:1.8;letter-spacing:0.03em;margin-bottom:20px;
+}
+
+/* bottone ORA */
+#btn-ora{
+  width:100%;padding:16px;border-radius:12px;border:none;cursor:pointer;
+  background:var(--ink);color:var(--paper);
+  font-family:'Fraunces',serif;font-size:20px;font-weight:600;
+  letter-spacing:-0.01em;transition:all 0.12s;margin-bottom:6px;
+}
+#btn-ora:active{transform:scale(0.98);background:#3C3428;}
+.btn-hint{
+  font-family:'DM Mono',monospace;font-size:8px;color:var(--inkFaint);
+  text-align:center;margin-bottom:22px;letter-spacing:0.04em;
+}
+
+/* form */
+.s-section{
+  font-family:'DM Mono',monospace;font-size:8px;color:var(--inkFaint);
+  letter-spacing:0.1em;margin-bottom:10px;margin-top:4px;
+}
+.s-card{
+  background:white;border:1px solid var(--border);border-radius:10px;
+  padding:14px 16px;margin-bottom:14px;
+}
+.s-row{display:flex;gap:10px;align-items:center;margin-bottom:10px;}
+.s-row:last-child{margin-bottom:0;}
+.s-label{
+  font-family:'DM Mono',monospace;font-size:8px;color:var(--inkSoft);
+  width:44px;flex-shrink:0;letter-spacing:0.04em;font-weight:500;
+}
+.s-select,.s-input{
+  flex:1;background:var(--paper);border:1px solid var(--border);
+  border-radius:6px;color:var(--ink);padding:7px 10px;
+  font-family:'DM Mono',monospace;font-size:10px;
+  -webkit-appearance:none;transition:border 0.12s;
+}
+.s-select:focus,.s-input:focus{outline:none;border-color:var(--ink);}
+.btn-save{
+  width:100%;padding:10px;border-radius:8px;border:1.5px solid var(--ink);
+  background:transparent;color:var(--ink);cursor:pointer;
+  font-family:'DM Mono',monospace;font-size:9px;font-weight:500;
+  letter-spacing:0.06em;transition:all 0.12s;
+}
+.btn-save:active{background:var(--ink);color:var(--paper);}
+
+/* storico */
+.sto-item{
+  background:white;border:1px solid var(--border);border-radius:8px;
+  padding:10px 14px;display:flex;justify-content:space-between;
+  align-items:center;margin-bottom:6px;
+}
+.sto-time{
+  font-family:'Fraunces',serif;font-size:20px;font-weight:600;
+  color:var(--ink);letter-spacing:-0.02em;
+}
+.sto-meta{
+  font-family:'DM Mono',monospace;font-size:8px;color:var(--inkFaint);
+  margin-top:1px;letter-spacing:0.03em;
+}
+.sto-right{display:flex;gap:8px;align-items:center;}
 .sto-chip{font-family:'DM Mono',monospace;font-size:7.5px;padding:2px 7px;border-radius:3px;}
-.btn-del{background:none;border:none;cursor:pointer;color:var(--inkFaint);font-size:14px;}
-#flash{position:fixed;top:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:9px 20px;border-radius:20px;font-family:'DM Mono',monospace;font-size:10px;z-index:999;opacity:0;transition:opacity 0.25s;pointer-events:none;}
+.sto-merci{background:var(--amberLo);color:var(--merci);border:1px solid #E0C090;}
+.sto-manual{background:var(--greenLo);color:var(--green);border:1px solid #A8D4B8;}
+.sto-sfm2{background:var(--blueLo);color:var(--blue);border:1px solid #B8D0EC;}
+.btn-del{background:none;border:none;cursor:pointer;color:var(--inkFaint);font-size:14px;padding:3px 5px;border-radius:4px;}
+.btn-del:active{color:var(--red);background:var(--redLo);}
+
+.pattern-card{
+  background:var(--amberLo);border:1px solid #E0C090;
+  border-radius:8px;padding:12px 14px;margin-bottom:14px;
+}
+.pattern-title{
+  font-family:'DM Mono',monospace;font-size:8px;color:var(--amber);
+  letter-spacing:0.08em;font-weight:500;margin-bottom:6px;
+}
+.pattern-body{font-family:'DM Mono',monospace;font-size:9px;color:var(--inkSoft);line-height:1.9;}
+
+/* flash */
+#flash{
+  position:fixed;top:24px;left:50%;transform:translateX(-50%);
+  background:var(--ink);color:var(--paper);
+  padding:9px 20px;border-radius:20px;
+  font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.05em;
+  z-index:999;opacity:0;transition:opacity 0.25s;pointer-events:none;
+  white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,0.2);
+}
 #flash.show{opacity:1;}
-#footer{padding:6px 20px 10px;background:var(--paper2);border-top:1px solid var(--border);flex-shrink:0;}.footer p{font-family:'DM Mono',monospace;font-size:7px;color:var(--inkFaint);text-align:center;}
+
+/* footer */
+#footer{
+  padding:6px 20px 10px;background:var(--paper2);
+  border-top:1px solid var(--border);flex-shrink:0;
+}
+#footer p{font-family:'DM Mono',monospace;font-size:7px;color:var(--inkFaint);text-align:center;line-height:1.7;letter-spacing:0.04em;}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.fade{animation:fadeUp 0.22s ease;}
 </style>
 </head>
 <body>
 <div id="app">
-  <div id="header">
-    <div class="h-row">
-      <div><div class="h-title">P.L. <em>Vinovo</em></div><div class="h-sub">SP143 · KM 5+806 · SFM2 <span id="live-ind" class="h-live live-off">● stimato</span></div></div>
-      <span id="clock">--:--:--</span>
-    </div>
-    <div id="tabs">
-      <button class="t-pill on" id="btn-monitor" onclick="setTab('monitor')">Monitor</button>
-      <button class="t-pill off" id="btn-segnala" onclick="setTab('segnala')">+ Segnala</button>
-    </div>
-  </div>
-  <div id="banner"><p id="banner-txt"></p></div>
-  <div id="stato"><div id="stato-dot"></div><div id="stato-txt"></div></div>
-  <div id="screen-monitor" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
-    <div id="map-wrap">
-      <svg id="map-svg" viewBox="0 0 360 230" xmlns="http://www.w3.org/2000/svg"></svg>
-    </div>
-    <div id="filtri">
-      <button class="f-chip on" data-f="tutti" onclick="setFiltro('tutti')">Tutti</button>
-      <button class="f-chip off" data-f="chi" onclick="setFiltro('chi')">▶ Chivasso</button>
-      <button class="f-chip off" data-f="pin" onclick="setFiltro('pin')">◀ Pinerolo</button>
-    </div>
-    <div id="lista"></div>
-  </div>
-  <div id="screen-segnala">
-    <div class="s-heading">Segnala transito</div>
-    <button id="btn-ora" onclick="segnalaOra()">🚆 Passato adesso</button>
-    <div class="s-section">INSERIMENTO MANUALE</div>
-    <div class="s-card">
-      <div class="s-row"><span class="s-label">Tipo</span><select class="s-select" id="seg-tipo"><option value="SFM2">SFM2</option><option value="Merci">Merci</option></select></div>
-      <div class="s-row"><span class="s-label">Ora</span><input class="s-input" type="time" id="seg-ora"/></div>
-      <button class="btn-save" onclick="salvaSegnalazione()">Salva segnalazione</button>
-    </div>
-    <div class="s-section">STORICO</div>
-    <div id="storico-list"></div>
-  </div>
+
+  <div id="header">
+    <div class="h-row">
+      <div>
+        <div class="h-title">P.L. <em>Vinovo</em></div>
+        <div class="h-sub">
+          SP143 · KM 5+806 · SFM2
+          <span id="live-ind" class="h-live live-off">● stimato</span>
+        </div>
+      </div>
+      <span id="clock">--:--:--</span>
+    </div>
+    <div id="tabs">
+      <button class="t-pill on"  id="btn-monitor" onclick="setTab('monitor')">Monitor</button>
+      <button class="t-pill off" id="btn-segnala" onclick="setTab('segnala')">+ Segnala</button>
+    </div>
+  </div>
+
+  <div id="banner"><p id="banner-txt"></p></div>
+
+  <div id="stato">
+    <div id="stato-dot"></div>
+    <div id="stato-txt"></div>
+  </div>
+
+  <div id="screen-monitor" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+    <div id="map-wrap">
+      <svg id="map-svg" viewBox="0 0 360 230" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div id="map-legend">
+        <div class="leg-row"><div class="leg-dot" style="background:var(--blue)"></div><span class="leg-txt">▶ Numero Treno</span></div>
+        <div class="leg-row"><div class="leg-dot" style="background:var(--merci)"></div><span class="leg-txt">Merci</span></div>
+        <div class="leg-row"><div class="leg-dot" style="background:var(--red);border-radius:50%"></div><span class="leg-txt">P.L. Chiuso</span></div>
+        <div class="leg-row"><div class="leg-dot" style="background:var(--green);border-radius:50%"></div><span class="leg-txt">P.L. Aperto</span></div>
+      </div>
+    </div>
+    <div id="filtri">
+      <button class="f-chip on"  data-f="tutti"  onclick="setFiltro('tutti')">Tutti</button>
+      <button class="f-chip off" data-f="chi"    onclick="setFiltro('chi')">▶ Chivasso</button>
+      <button class="f-chip off" data-f="pin"    onclick="setFiltro('pin')">◀ Pinerolo</button>
+      <button class="f-chip off" data-f="sfm2"   onclick="setFiltro('sfm2')">SFM2</button>
+      <button class="f-chip off" data-f="merci"  onclick="setFiltro('merci')">Merci</button>
+    </div>
+    <div id="lista" class="fade"></div>
+  </div>
+
+  <div id="screen-segnala">
+    <div class="s-heading">Segnala transito</div>
+    <div class="s-body">Hai visto passare un treno? Registralo con un tap.<br>L'app impara e migliora le stime nel tempo.</div>
+
+    <button id="btn-ora" onclick="segnalaOra()">🚆 Passato adesso</button>
+    <div class="btn-hint">Registra il transito con l'ora esatta</div>
+
+    <div class="s-section">INSERIMENTO MANUALE</div>
+    <div class="s-card">
+      <div class="s-row">
+        <span class="s-label">Tipo</span>
+        <select class="s-select" id="seg-tipo">
+          <option value="SFM2">SFM2 (passeggeri)</option>
+          <option value="Merci">Merci</option>
+        </select>
+      </div>
+      <div class="s-row">
+        <span class="s-label">Ora</span>
+        <input class="s-input" type="time" id="seg-ora"/>
+      </div>
+      <div class="s-row">
+        <span class="s-label">Dir.</span>
+        <select class="s-select" id="seg-dir">
+          <option value="Chivasso">▶ Verso Chivasso</option>
+          <option value="Pinerolo">◀ Verso Pinerolo</option>
+          <option value="?">Non so</option>
+        </select>
+      </div>
+      <button class="btn-save" onclick="salvaSegnalazione()">Salva segnalazione</button>
+    </div>
+
+    <div id="pattern-wrap" style="display:none">
+      <div class="s-section">SCHEMA MERCI RILEVATO</div>
+      <div class="pattern-card">
+        <div class="pattern-title">Passaggi stimati dai tuoi avvistamenti</div>
+        <div class="pattern-body" id="pattern-txt"></div>
+      </div>
+    </div>
+
+    <div class="s-section">STORICO</div>
+    <div id="storico-list"></div>
+    <div style="height:20px"></div>
+  </div>
+
+  <div id="footer"><p>SFM2 Trenitalia Piemonte · OpenStreetMap · ViaggiaTreno (non ufficiale) · Merci: stimato da segnalazioni · Rispettare sempre i segnali ufficiali del passaggio a livello</p></div>
 </div>
+
 <div id="flash"></div>
 
 <script>
-/* LOGICA ORIGINALE INVARIATA */
+/* ── CONFIGURAZIONE MAPPA GEOMETRICA ── */
 const MW=360, MH=230;
 const BBOX={lonMin:7.25,lonMax:7.70,latMin:44.87,latMax:45.08};
-function proj(lat,lon){return{x:((lon-BBOX.lonMin)/(BBOX.lonMax-BBOX.lonMin))*MW, y:MH-((lat-BBOX.latMin)/(BBOX.latMax-BBOX.latMin))*MH};}
-const PL=proj(44.9480,7.6320);
-const STAZ=[{id:'pinerolo', label:'Pinerolo', lat:44.8875, lon:7.3292, tx:-16, ty:10}, {id:'airasca', label:'Airasca', lat:44.9130, lon:7.4660, tx:0, ty:-6}, {id:'none', label:'None', lat:44.9310, lon:7.5290, tx:0, ty:-6}, {id:'candiolo', label:'Candiolo', lat:44.9611, lon:7.5990, tx:18, ty:3}, {id:'nichelino',label:'Nichelino', lat:44.9914, lon:7.6422, tx:18, ty:3}, {id:'lingotto', label:'Lingotto', lat:45.0298, lon:7.6680, tx:16, ty:3}, {id:'psusa', label:'P. Susa', lat:45.0709, lon:7.6658, tx:14, ty:3}];
-const RAIL_PTS=[proj(44.8875,7.3292), proj(44.8970,7.3620), proj(44.9020,7.3980), proj(44.9060,7.4220), proj(44.9130,7.4660), proj(44.9190,7.4900), proj(44.9240,7.5060), proj(44.9310,7.5290), proj(44.9400,7.5540), proj(44.9490,7.5720), proj(44.9560,7.5880), proj(44.9611,7.5990), proj(44.9650,7.6080), proj(44.9700,7.6160), proj(44.9480,7.6320), proj(44.9760,7.6260), proj(44.9820,7.6320), proj(44.9880,7.6370), proj(44.9914,7.6422), proj(44.9990,7.6520), proj(45.0060,7.6590), proj(45.0150,7.6640), proj(45.0298,7.6680), proj(45.0450,7.6670), proj(45.0580,7.6665), proj(45.0709,7.6658)];
-function ptStr(pts){return pts.map(p=>p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ');}
-function lerp(a,b,t){return a+(b-a)*t;}
-function trainPos(t){ /* LA TUA LOGICA ORIGINALE DI CALCOLO POSIZIONE... */ }
-
-/* --- RENDERMAPPA MODIFICATA (PULITA) --- */
-function renderMappa(treni, plChiuso){
-  const plCol = plChiuso ? '#C8321A' : '#1A7A3C';
-  let h = `<rect width="${MW}" height="${MH}" fill="#EEF2F8"/>`;
-  h += `<polyline points="${ptStr(RAIL_PTS)}" fill="none" stroke="#5C4A30" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>`;
-  STAZ.forEach(s=>{
-    const p=proj(s.lat,s.lon);
-    h += `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="1.5" fill="#1C1814"/>`;
-    h += `<text x="${(p.x+s.tx).toFixed(1)}" y="${(p.y+s.ty).toFixed(1)}" text-anchor="middle" font-size="6.5" fill="#5C5448" font-family="'DM Mono',monospace">${s.label}</text>`;
-  });
-  h += `<circle cx="${PL.x.toFixed(1)}" cy="${PL.y.toFixed(1)}" r="4.5" fill="${plCol}" stroke="white" stroke-width="1.2"/>`;
-  treni.slice(0,6).forEach(t=>{
-    const pos=trainPos(t);
-    if(!pos)return;
-    const col = t.tipo==='Merci'?'#8A4A10':'#1A5A9A';
-    h += `<rect x="${(pos.x-14).toFixed(1)}" y="${(pos.y-6).toFixed(1)}" width="28" height="12" rx="3" fill="${col}" stroke="white" stroke-width="1"/>`;
-  });
-  document.getElementById('map-svg').innerHTML=h;
+function proj(lat,lon){
+  return{
+    x:((lon-BBOX.lonMin)/(BBOX.lonMax-BBOX.lonMin))*MW,
+    y:MH-((lat-BBOX.latMin)/(BBOX.latMax-BBOX.latMin))*MH
+  };
 }
 
-/* --- INCOLLA QUI IL RESTO DEL TUO SCRIPT ORIGINALE (aggiornaMonitor, fetchRitardi, etc.) --- */
+const PL=proj(44.9480,7.6320);
+
+/* Stazioni ridotte al minimo e coordinate di testo sfalsate per evitare sovrapposizioni */
+const STAZ=[
+  {id:'pinerolo', label:'Pinerolo',  lat:44.8875, lon:7.3292, tx:-16, ty:10},
+  {id:'airasca',  label:'Airasca',   lat:44.9130, lon:7.4660, tx:0,   ty:-6},
+  {id:'none',     label:'None',      lat:44.9310, lon:7.5290, tx:0,   ty:-6},
+  {id:'candiolo', label:'Candiolo',  lat:44.9611, lon:7.5990, tx:18,  ty:3},
+  {id:'nichelino',label:'Nichelino', lat:44.9914, lon:7.6422, tx:18,  ty:3},
+  {id:'lingotto', label:'Lingotto',  lat:45.0298, lon:7.6680, tx:16,  ty:3},
+  {id:'psusa',    label:'P. Susa',   lat:45.0709, lon:7.6658, tx:14,  ty:3},
+];
+
+const RAIL_PTS=[
+  proj(44.8875,7.3292), proj(44.8970,7.3620), proj(44.9020,7.3980), proj(44.9060,7.4220),
+  proj(44.9130,7.4660), proj(44.9190,7.4900), proj(44.9240,7.5060), proj(44.9310,7.5290),
+  proj(44.9400,7.5540), proj(44.9490,7.5720), proj(44.9560,7.5880), proj(44.9611,7.5990),
+  proj(44.9650,7.6080), proj(44.9700,7.6160), proj(44.9480,7.6320), proj(44.9760,7.6260),
+  proj(44.9820,7.6320), proj(44.9880,7.6370), proj(44.9914,7.6422), proj(44.9990,7.6520),
+  proj(45.0060,7.6590), proj(45.0150,7.6640), proj(45.0298,7.6680), proj(45.0450,7.6670),
+  proj(45.0580,7.6665), proj(45.0709,7.6658)
+];
+
+function lerp(a,b,t){return a+(b-a)*t;}
+function ptStr(pts){return pts.map(p=>p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ');}
+
+function trainPos(t){
+  const {min, dir} = t;
+  if(min > 90 || min < -10) return null;
+  const N = RAIL_PTS.length - 1;
+  const PL_IDX = 14; 
+  let frac;
+  if(dir === 'Chivasso') {
+    if(min >= 0) {
+      frac = (1 - (min / 45)) * (PL_IDX / N);
+    } else {
+      frac = (PL_IDX / N) + ((-min / 15) * ((N - PL_IDX) / N));
+    }
+  } else {
+    if(min >= 0) {
+      frac = (PL_IDX / N) + ((min / 45) * ((N - PL_IDX) / N));
+    } else {
+      frac = (1 - (-min / 15)) * (PL_IDX / N);
+    }
+  }
+  frac = Math.max(0, Math.min(1, frac));
+  const totalIdx = frac * N;
+  const idx = Math.max(0, Math.min(Math.floor(totalIdx), N - 1));
+  const tf = totalIdx - idx;
+  return {
+    x: lerp(RAIL_PTS[idx].x, RAIL_PTS[idx+1].x, tf),
+    y: lerp(RAIL_PTS[idx].y, RAIL_PTS[idx+1].y, tf)
+  };
+}
+
+function renderMappa(treni,plChiuso){
+  const plCol=plChiuso?'#C8321A':'#1A7A3C';
+  let h='';
+  h+=`<rect width="${MW}" height="${MH}" fill="#EEF2F8"/>`;
+  h+=`<polyline points="${[proj(44.90,7.35),proj(44.92,7.40),proj(44.94,7.46),proj(44.96,7.52)].map(p=>p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ')}" fill="none" stroke="#F0D080" stroke-width="2.5" stroke-linecap="round" opacity="0.6"/>`;
+  h+=`<line x1="${(PL.x-30).toFixed(1)}" y1="${PL.y.toFixed(1)}" x2="${(PL.x+30).toFixed(1)}" y2="${PL.y.toFixed(1)}" stroke="#D8C0A0" stroke-width="3" opacity="0.8"/>`;
+
+  for(let i=0;i<7;i++) h+=`<line x1="${i*60}" y1="0" x2="${i*60}" y2="${MH}" stroke="#B8C4D0" stroke-width="0.4" opacity="0.2"/>`;
+  for(let i=0;i<5;i++) h+=`<line x1="0" y1="${i*58}" x2="${MW}" y2="${i*58}" stroke="#B8C4D0" stroke-width="0.4" opacity="0.2"/>`;
+
+  h+=`<polyline points="${ptStr(RAIL_PTS)}" fill="none" stroke="#5C4A30" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>`;
+
+  /* Nodi stazioni microscopici (punti da 1.5px senza riquadri) e testi spostati lateralmente */
+  STAZ.forEach(s=>{
+    const p=proj(s.lat,s.lon);
+    h+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="1.5" fill="#1C1814"/>`;
+    h+=`<text x="${(p.x+s.tx).toFixed(1)}" y="${(p.y+s.ty).toFixed(1)}" text-anchor="middle" font-size="6.5" fill="#5C5448" font-family="'DM Mono',monospace" font-weight="500">${s.label}</text>`;
+  });
+
+  /* Vinovo P.L. */
+  h+=`<circle cx="${PL.x.toFixed(1)}" cy="${PL.y.toFixed(1)}" r="4.5" fill="${plCol}" stroke="white" stroke-width="1.2"/>`;
+  h+=`<text x="${(PL.x).toFixed(1)}" y="${(PL.y-8).toFixed(1)}" text-anchor="middle" font-size="7" fill="${plCol}" font-family="'DM Mono',monospace" font-weight="700">P.L.</text>`;
+
+  treni.slice(0,6).forEach(t=>{
+    const pos=trainPos(t);
+    if(!pos)return;
+    const isMerci=t.tipo==='Merci';
+    const trainCol=isMerci?'#8A4A10':'#1A5A9A';
+    const colLo=isMerci?'#F5E8D4':'#D8E8F8';
+    const arrow=t.dir==='Chivasso'?'▶':'◀';
+    
+    h+=`<rect x="${(pos.x-14).toFixed(1)}" y="${(pos.y-6).toFixed(1)}" width="28" height="12" rx="3" fill="${trainCol}" stroke="white" stroke-width="1"/>`;
+    if(t.min<=45){
+      h+=`<rect x="${(pos.x-15).toFixed(1)}" y="${(pos.y-17).toFixed(1)}" width="30" height="9" rx="2" fill="${colLo}" stroke="${trainCol}" stroke-width="0.7"/>`;
+      h+=`<text x="${pos.x.toFixed(1)}" y="${(pos.y-10.5).toFixed(1)}" text-anchor="middle" font-size="6" fill="${trainCol}" font-family="'DM Mono',monospace" font-weight="700">${arrow}${t.numero}</text>`;
+    }
+  });
+
+  document.getElementById('map-svg').innerHTML=h;
+}
+
+/* ── INFRASTRUTTURA ORARI E STATO ── */
+function getLavori(){
+  const d=new Date();
+  if(d>=new Date('2026-06-15')&&d<=new Date('2026-07-26'))
+    return{fase:2,msg:'⚠ Fase 2 lavori (15 giu–26 la g 2026): nessun treno al P.L. di Vinovo. Bus sostitutivi Pinerolo ↔ Torino Lingotto.',col:'#C8321A'};
+  if(d>=new Date('2026-05-09')&&d<=new Date('2026-06-14'))
+    return{fase:1,msg:'⚠ Fase 1 lavori (9 mag–14 giu 2026): sospensione Pinerolo–None. Vinovo servita regolarmente.',col:'#C87010'};
+  return{fase:0,msg:null,col:null};
+}
+const LAVORI=getLavori();
+
+function addMin(hhmm,d){
+  const[h,m]=hhmm.split(':').map(Number);
+  const t=h*60+m+d;
+  return String(Math.floor(t/60)%24).padStart(2,'0')+':'+String(t%60).padStart(2,'0');
+}
+function minUntil(hhmm,rit=0){
+  const now=new Date();
+  const[h,m]=hhmm.split(':').map(Number);
+  const t=new Date(now);t.setHours(h,m+rit,0,0);
+  if(t<now)t.setDate(t.getDate()+1);
+  return Math.round((t-now)/60000);
+}
+
+const ORARI=[
+  ...['05:42','06:12','06:42','07:12','07:42','08:12','08:42','09:42',
+      '10:42','11:42','12:42','13:42','14:42','15:42','16:12','16:42',
+      '17:12','17:42','18:12','18:42','19:42','20:42','21:42','22:42']
+    .map((o,i,a)=>({numero:'262'+String(i*2).padStart(2,'0'),dir:'Chivasso',oraRef:o,tipo:'SFM2',
+      note:i===0?'Prima':i===a.length-1?'Ultima':null})),
+  ...['05:56','06:26','06:56','07:26','07:56','08:26','08:56','09:56',
+      '10:56','11:56','12:56','13:56','14:56','15:56','16:26','16:56',
+      '17:26','17:56','18:26','18:56','19:56','20:56','21:56','22:56']
+    .map((o,i)=>({numero:'262'+String(i*2+1).padStart(2,'0'),dir:'Pinerolo',oraRef:o,tipo:'SFM2',note:null})),
+];
+
+function loadStorico(){try{return JSON.parse(localStorage.getItem('vinovo_storico')||'[]');}catch{return[];}}
+function saveStorico(s){try{localStorage.setItem('vinovo_storico',JSON.stringify(s));}catch{}}
+function calcolaPattern(storico){
+  const merci=storico.filter(s=>s.tipo==='Merci');
+  if(merci.length<3)return null;
+  const fasce={};
+  merci.forEach(s=>{
+    const h=parseInt(s.ora.split(':')[0]);
+    const f=h<6?'Notte (00–06)':h<12?'Mattina (06–12)':h<18?'Pomeriggio (12–18)':'Sera (18–24)';
+    fasce[f]=(fasce[f]||0)+1;
+  });
+  return Object.entries(fasce).sort((a,b)=>b[1]-a[1]).map(([f,n])=>`${f}: ${n} passaggi`).join('\n');
+}
+
+let RITARDI={};
+let filtro='tutti';
+let tab='monitor';
+
+function merciDaStorico(){
+  const storico=loadStorico();
+  const cutoff=Date.now()-48*3600*1000;
+  return storico.filter(s=>s.tipo==='Merci'&&new Date(s.ts).getTime()>cutoff)
+    .map((s,i)=>{
+      const oraPL=s.ora;
+      const min=minUntil(oraPL,0);
+      return{numero:'MCi-'+i,dir:s.dir||'?',oraRef:s.ora,tipo:'Merci',
+             oraPL,min,ritardo:0,barDown:addMin(oraPL,-3),barUp:addMin(oraPL,1),note:'segnalato'};
+    }).filter(t=>t.min>=-2&&t.min<=180);
+}
+
+function buildTreni(){
+  if(LAVORI.fase===2)return[];
+  const sfm2=ORARI.map(t=>{
+    const rit=RITARDI[t.numero]||0;
+    const oraPL=addMin(t.oraRef,2);
+    const min=minUntil(oraPL,rit);
+    return{...t,oraPL,min,ritardo:rit,barDown:addMin(oraPL,-3+rit),barUp:addMin(oraPL,1+rit)};
+  }).filter(t=>t.min>=-2&&t.min<=180);
+  const merciObs=merciDaStorico();
+  const merciStd=[
+    {numero:'MCi-A',dir:'Chivasso',oraRef:'02:18',tipo:'Merci',note:'indicativo'},
+    {numero:'MCi-B',dir:'Pinerolo',oraRef:'03:42',tipo:'Merci',note:'indicativo'},
+    {numero:'MCi-C',dir:'Chivasso',oraRef:'23:48',tipo:'Merci',note:'indicativo'},
+  ].map(t=>{
+    const oraPL=addMin(t.oraRef,2);
+    const min=minUntil(oraPL,0);
+    return{...t,oraPL,min,ritardo:0,barDown:addMin(oraPL,-3),barUp:addMin(oraPL,1)};
+  }).filter(t=>t.min>=-2&&t.min<=180);
+  return[...sfm2,...merciObs,...merciStd].sort((a,b)=>a.min-b.min);
+}
+
+function applyFiltro(t){
+  if(filtro==='tutti')return true;
+  if(filtro==='chi')return t.dir==='Chivasso';
+  if(filtro==='pin')return t.dir==='Pinerolo';
+  if(filtro==='sfm2')return t.tipo==='SFM2';
+  if(filtro==='merci')return t.tipo==='Merci';
+  return true;
+}
+
+function colMin(t){
+  if(t.tipo==='Merci')return'#8A4A10';
+  if(t.min<=3)return'#C8321A';
+  if(t.min<=8)return'#C87010';
+  if(t.min<=20)return'#1A5A9A';
+  return'#A09888';
+}
+
+function renderStato(treni){
+  const pr=treni.filter(applyFiltro)[0];
+  const chiuso=pr&&pr.min<=3&&pr.min>=-1;
+  const inArr=pr&&pr.min<=8&&!chiuso;
+  let col,lbl;
+  if(LAVORI.fase===2){col='#C8321A';lbl='Nessun treno — Lavori fase 2 (fino al 26 lug)';}
+  else if(chiuso){col='#C8321A';lbl='Barriere chiuse · Riapertura ~'+pr.barUp;}
+  else if(inArr){col='#C87010';lbl='In arrivo tra '+pr.min+' min · Chiusura ~'+pr.barDown;}
+  else if(pr){col='#1A7A3C';lbl='Aperto · Prossimo tra '+pr.min+' min ('+pr.oraPL+')';}
+  else{col='#1A7A3C';lbl='Aperto · Nessun treno nelle prossime 3h';}
+  const dot=document.getElementById('stato-dot');
+  if(dot){
+    dot.style.background=col;
+    dot.classList.toggle('pulsing',chiuso);
+  }
+  const stTxt=document.getElementById('stato-txt');
+  if(stTxt){
+    stTxt.style.color=col;
+    stTxt.textContent=lbl;
+  }
+  const stDiv=document.getElementById('stato');
+  if(stDiv){
+    stDiv.style.background=col+'12';
+    stDiv.style.borderBottomColor=col+'25';
+  }
+  return chiuso;
+}
+
+function renderLista(treni){
+  const fl=treni.filter(applyFiltro);
+  const el=document.getElementById('lista');
+  if(!el) return;
+  if(!fl.length){
+    el.innerHTML=`<div class="empty">${LAVORI.fase===2?'Nessun treno fino al 26 luglio 2026\n(Fase 2 lavori — bus sostitutivi)':'Nessun treno\nnelle prossime 3h'}</div>`;
+    return;
+  }
+  el.innerHTML=fl.map((t,i)=>{
+    const col=colMin(t);
+    const primo=i===0;
+    return`<div class="t-card${primo?' primo':''}" style="${primo?'background:'+col+'08;':''}">
+      <div class="t-left">
+        ${t.min<0?`<span style="font-size:22px">✓</span>`
+          :`<span class="t-min-num" style="font-size:${primo?28:20}px;color:${col}">${t.min}</span>
+            <span class="t-min-lbl">min</span>`}
+      </div>
+      <div class="t-right">
+        <div class="t-top-row">
+          <span class="chip ${t.tipo==='Merci'?'chip-merci':'chip-sfm2'}">${t.tipo==='Merci'?'Merci':'SFM2'}</span>
+          <span class="t-numero">${t.numero}</span>
+          <span class="t-dir ${t.dir==='Chivasso'?'dir-chi':'dir-pin'}">${t.dir==='Chivasso'?'▶ Chivasso':t.dir==='Pinerolo'?'◀ Pinerolo':'?'}</span>
+          ${t.ritardo>0?`<span class="chip chip-rit">+${t.ritardo}′</span>`:''}
+          ${t.note?`<span class="chip chip-note">${t.note}</span>`:''}
+        </div>
+        <div class="t-bot-row">
+          <span class="t-ora">${t.oraPL}</span>
+          <span class="t-barriere">🚧 ${t.barDown}–${t.barUp} · ~4 min</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderBanner(){
+  const b=document.getElementById('banner');
+  if(!b) return;
+  if(!LAVORI.msg){b.style.display='none';return;}
+  b.style.display='block';
+  b.style.background=LAVORI.col+'12';
+  b.style.borderBottomColor=LAVORI.col+'30';
+  const bt=document.getElementById('banner-txt');
+  if(bt){
+    bt.style.color=LAVORI.col;
+    bt.textContent=LAVORI.msg;
+  }
+}
+
+function renderStorico(){
+  const sto=loadStorico();
+  const el=document.getElementById('storico-list');
+  if(!el) return;
+  if(!sto.length){
+    el.innerHTML='<div class="empty" style="padding:16px 0">Nessuna segnalazione ancora</div>';
+  } else {
+    el.innerHTML=[...sto].reverse().map((s,i)=>`
+      <div class="sto-item">
+        <div>
+          <div class="sto-time">${s.ora}</div>
+          <div class="sto-meta">${new Date(s.ts).toLocaleDateString('it-IT')} · ${s.dir||'dir. ?'}</div>
+        </div>
+        <div class="sto-right">
+          <span class="sto-chip ${s.tipo==='Merci'?'sto-merci':s.manuale?'sto-manual':'sto-sfm2'}">${s.tipo}</span>
+          <button class="btn-del" onclick="eliminaSegnalazione(${sto.length-1-i})">✕</button>
+        </div>
+      </div>`).join('');
+  }
+  const p=calcolaPattern(sto);
+  const pw=document.getElementById('pattern-wrap');
+  if(pw){
+    if(p){pw.style.display='block';document.getElementById('pattern-txt').textContent=p;}
+    else pw.style.display='none';
+  }
+}
+
+/* ── AZIONI INTERFACCIA ── */
+function setTab(t){
+  tab=t;
+  document.getElementById('btn-monitor').className='t-pill '+(t==='monitor'?'on':'off');
+  document.getElementById('btn-segnala').className='t-pill '+(t==='segnala'?'on':'off');
+  document.getElementById('screen-monitor').style.display=t==='monitor'?'flex':'none';
+  document.getElementById('screen-segnala').style.display=t==='segnala'?'block':'none';
+  if(t==='segnala')renderStorico();
+}
+
+function setFiltro(f){
+  filtro=f;
+  document.querySelectorAll('.f-chip').forEach(b=>b.className='f-chip '+(b.dataset.f===f?'on':'off'));
+  aggiornaMonitor();
+}
+
+function segnalaOra(){
+  const n=new Date();
+  const ora=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');
+  const sto=loadStorico();
+  sto.push({ora,ts:n.toISOString(),tipo:document.getElementById('seg-tipo').value,dir:document.getElementById('seg-dir').value,manuale:false});
+  saveStorico(sto);
+  flash('✓ Transito registrato — '+ora);
+  renderStorico();
+}
+
+function salvaSegnalazione(){
+  const ora=document.getElementById('seg-ora').value;
+  if(!ora){return;}
+  const sto=loadStorico();
+  sto.push({ora,ts:new Date().toISOString(),tipo:document.getElementById('seg-tipo').value,dir:document.getElementById('seg-dir').value,manuale:true});
+  saveStorico(sto);
+  flash('✓ Segnalazione salvata');
+  renderStorico();
+}
+
+function eliminaSegnalazione(idx){
+  const sto=loadStorico();sto.splice(idx,1);saveStorico(sto);renderStorico();
+}
+
+function flash(msg){
+  const f=document.getElementById('flash');
+  if(!f) return;
+  f.textContent=msg;f.classList.add('show');
+  setTimeout(()=>f.classList.remove('show'),2200);
+}
+
+/* ── RECUPERO REALE RITARDI ── */
+async function fetchRitardi(){
+  try{
+    const now=new Date();
+    const ts=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')
+      +'T'+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0')+':00';
+    const url='https://corsproxy.io/?https://www.viaggiatreno.it/infomobilita/resteasy/viaggiatreno/partenze/S04203/'+encodeURIComponent(ts);
+    const r=await fetch(url,{signal:AbortSignal.timeout(8000)});
+    if(!r.ok)throw new Error();
+    const data=await r.json();
+    (data||[]).forEach(t=>{if(t.numeroTreno!=null&&t.ritardo!=null)RITARDI[String(t.numeroTreno)]=t.ritardo;});
+    const li=document.getElementById('live-ind');
+    if(li){li.textContent='● live';li.className='h-live live-on';}
+  }catch{
+    const li=document.getElementById('live-ind');
+    if(li){li.textContent='● stimato';li.className='h-live live-off';}
+  }
+}
+
+/* ── CICLO ENGINE PRINCIPALE ── */
+function aggiornaMonitor(){
+  const treni=buildTreni();
+  const chiuso=renderStato(treni);
+  renderMappa(treni.filter(applyFiltro),chiuso);
+  renderLista(treni);
+}
+
+const _n=new Date();
+const segOraEl=document.getElementById('seg-ora');
+if(segOraEl) segOraEl.value=String(_n.getHours()).padStart(2,'0')+':'+String(_n.getMinutes()).padStart(2,'0');
+
+renderBanner();
+aggiornaMonitor();
+
+setInterval(()=>{
+  const n=new Date();
+  const cl=document.getElementById('clock');
+  if(cl){
+    cl.textContent=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')+':'+String(n.getSeconds()).padStart(2,'0');
+  }
+},1000);
+
+setInterval(aggiornaMonitor,10000);
+
+fetchRitardi();
+setInterval(fetchRitardi,60000);
 </script>
 </body>
 </html>
