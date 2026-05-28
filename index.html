@@ -419,14 +419,15 @@ function proj(lat,lon){
 
 const PL=proj(44.9480,7.6320);
 
+/* Stazioni ridotte al minimo e coordinate di testo sfalsate per evitare sovrapposizioni */
 const STAZ=[
-  {id:'pinerolo', label:'Pinerolo',  lat:44.8875, lon:7.3292},
-  {id:'airasca',  label:'Airasca',   lat:44.9130, lon:7.4660},
-  {id:'none',     label:'None',      lat:44.9310, lon:7.5290},
-  {id:'candiolo', label:'Candiolo',  lat:44.9611, lon:7.5990},
-  {id:'nichelino',label:'Nichelino', lat:44.9914, lon:7.6422},
-  {id:'lingotto', label:'Lingotto',  lat:45.0298, lon:7.6680},
-  {id:'psusa',    label:'P. Susa',   lat:45.0709, lon:7.6658},
+  {id:'pinerolo', label:'Pinerolo',  lat:44.8875, lon:7.3292, tx:-16, ty:10},
+  {id:'airasca',  label:'Airasca',   lat:44.9130, lon:7.4660, tx:0,   ty:-6},
+  {id:'none',     label:'None',      lat:44.9310, lon:7.5290, tx:0,   ty:-6},
+  {id:'candiolo', label:'Candiolo',  lat:44.9611, lon:7.5990, tx:18,  ty:3},
+  {id:'nichelino',label:'Nichelino', lat:44.9914, lon:7.6422, tx:18,  ty:3},
+  {id:'lingotto', label:'Lingotto',  lat:45.0298, lon:7.6680, tx:16,  ty:3},
+  {id:'psusa',    label:'P. Susa',   lat:45.0709, lon:7.6658, tx:14,  ty:3},
 ];
 
 const RAIL_PTS=[
@@ -475,31 +476,24 @@ function renderMappa(treni,plChiuso){
   const plCol=plChiuso?'#C8321A':'#1A7A3C';
   let h='';
   h+=`<rect width="${MW}" height="${MH}" fill="#EEF2F8"/>`;
-  h+=`<polyline points="${[proj(44.90,7.35),proj(44.92,7.40),proj(44.94,7.46),proj(44.96,7.52)].map(p=>p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ')}" fill="none" stroke="#F0D080" stroke-width="3" stroke-linecap="round" opacity="0.75"/>`;
-  h+=`<line x1="${(PL.x-40).toFixed(1)}" y1="${PL.y.toFixed(1)}" x2="${(PL.x+40).toFixed(1)}" y2="${PL.y.toFixed(1)}" stroke="#D8C0A0" stroke-width="4" opacity="0.9"/>`;
+  h+=`<polyline points="${[proj(44.90,7.35),proj(44.92,7.40),proj(44.94,7.46),proj(44.96,7.52)].map(p=>p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ')}" fill="none" stroke="#F0D080" stroke-width="2.5" stroke-linecap="round" opacity="0.6"/>`;
+  h+=`<line x1="${(PL.x-30).toFixed(1)}" y1="${PL.y.toFixed(1)}" x2="${(PL.x+30).toFixed(1)}" y2="${PL.y.toFixed(1)}" stroke="#D8C0A0" stroke-width="3" opacity="0.8"/>`;
 
-  for(let i=0;i<7;i++) h+=`<line x1="${i*60}" y1="0" x2="${i*60}" y2="${MH}" stroke="#B8C4D0" stroke-width="0.4" opacity="0.3"/>`;
-  for(let i=0;i<5;i++) h+=`<line x1="0" y1="${i*58}" x2="${MW}" y2="${i*58}" stroke="#B8C4D0" stroke-width="0.4" opacity="0.3"/>`;
+  for(let i=0;i<7;i++) h+=`<line x1="${i*60}" y1="0" x2="${i*60}" y2="${MH}" stroke="#B8C4D0" stroke-width="0.4" opacity="0.2"/>`;
+  for(let i=0;i<5;i++) h+=`<line x1="0" y1="${i*58}" x2="${MW}" y2="${i*58}" stroke="#B8C4D0" stroke-width="0.4" opacity="0.2"/>`;
 
-  h+=`<polyline points="${ptStr(RAIL_PTS)}" fill="none" stroke="#A09080" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity="0.3"/>`;
-  for(let i=0;i<RAIL_PTS.length-1;i++){
-    const p1=RAIL_PTS[i], p2=RAIL_PTS[i+1];
-    const px=lerp(p1.x,p2.x,0.5), py=lerp(p1.y,p2.y,0.5);
-    const dx=p2.x-p1.x, dy=p2.y-p1.y;
-    const len=Math.sqrt(dx*dx+dy*dy)||1;
-    h+=`<line x1="${(px+(-dy/len)*3.5).toFixed(1)}" y1="${(py+(dx/len)*3.5).toFixed(1)}" x2="${(px-(-dy/len)*3.5).toFixed(1)}" y2="${(py-(dx/len)*3.5).toFixed(1)}" stroke="#8C7A60" stroke-width="1.8" stroke-linecap="round" opacity="0.7"/>`;
-  }
-  h+=`<polyline points="${ptStr(RAIL_PTS)}" fill="none" stroke="#5C4A30" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>`;
+  h+=`<polyline points="${ptStr(RAIL_PTS)}" fill="none" stroke="#5C4A30" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>`;
 
+  /* Nodi stazioni microscopici (punti da 1.5px senza riquadri) e testi spostati lateralmente */
   STAZ.forEach(s=>{
     const p=proj(s.lat,s.lon);
-    const big=s.id==='pinerolo'||s.id==='psusa';
-    h+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${big?5:4.0}" fill="white" stroke="#5C4A30" stroke-width="1.5"/>`;
-    const above=s.id==='none'||s.id==='airasca'||s.id==='lingotto';
-    h+=`<text x="${p.x.toFixed(1)}" y="${(above?p.y-8:p.y+11).toFixed(1)}" text-anchor="middle" font-size="8" fill="#5C4A30" font-family="'DM Mono',monospace" font-weight="500">${s.label}</text>`;
+    h+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="1.5" fill="#1C1814"/>`;
+    h+=`<text x="${(p.x+s.tx).toFixed(1)}" y="${(p.y+s.ty).toFixed(1)}" text-anchor="middle" font-size="6.5" fill="#5C5448" font-family="'DM Mono',monospace" font-weight="500">${s.label}</text>`;
   });
 
-  h+=`<circle cx="${PL.x.toFixed(1)}" cy="${PL.y.toFixed(1)}" r="5" fill="${plCol}" stroke="white" stroke-width="1.5"/>`;
+  /* Vinovo P.L. */
+  h+=`<circle cx="${PL.x.toFixed(1)}" cy="${PL.y.toFixed(1)}" r="4.5" fill="${plCol}" stroke="white" stroke-width="1.2"/>`;
+  h+=`<text x="${(PL.x).toFixed(1)}" y="${(PL.y-8).toFixed(1)}" text-anchor="middle" font-size="7" fill="${plCol}" font-family="'DM Mono',monospace" font-weight="700">P.L.</text>`;
 
   treni.slice(0,6).forEach(t=>{
     const pos=trainPos(t);
@@ -523,7 +517,7 @@ function renderMappa(treni,plChiuso){
 function getLavori(){
   const d=new Date();
   if(d>=new Date('2026-06-15')&&d<=new Date('2026-07-26'))
-    return{fase:2,msg:'⚠ Fase 2 lavori (15 giu–26 lug 2026): nessun treno al P.L. di Vinovo. Bus sostitutivi Pinerolo ↔ Torino Lingotto.',col:'#C8321A'};
+    return{fase:2,msg:'⚠ Fase 2 lavori (15 giu–26 la g 2026): nessun treno al P.L. di Vinovo. Bus sostitutivi Pinerolo ↔ Torino Lingotto.',col:'#C8321A'};
   if(d>=new Date('2026-05-09')&&d<=new Date('2026-06-14'))
     return{fase:1,msg:'⚠ Fase 1 lavori (9 mag–14 giu 2026): sospensione Pinerolo–None. Vinovo servita regolarmente.',col:'#C87010'};
   return{fase:0,msg:null,col:null};
