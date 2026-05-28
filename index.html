@@ -27,23 +27,41 @@ const STAZ=[
   {l:'Pinerolo', x:40}, {l:'None', x:120}, {l:'Vinovo', x:180}, {l:'Lingotto', x:300}
 ];
 
-function renderMappa(treni) {
-  let h = `<line x1="40" y1="60" x2="320" y2="60" stroke="#5C4A30" stroke-width="1.5"/>`;
+function renderMappa(treni, plChiuso) {
+  const plCol = plChiuso ? '#C8321A' : '#1A7A3C';
+  let h = '';
   
-  // Stazioni: solo punti 1.5px e testo microscopico
+  // Sfondo pulito
+  h += `<rect width="${MW}" height="${MH}" fill="#EEF2F8"/>`;
+
+  // Linea ferroviaria (senza fronzoli)
+  h += `<polyline points="${ptStr(RAIL_PTS)}" fill="none" stroke="#5C4A30" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>`;
+
+  // Stazioni: punti microscopici (1.5px) e testo piccolo (6.5px) senza box
   STAZ.forEach(s => {
-    h += `<circle cx="${s.x}" cy="60" r="1.5" fill="black"/>`;
-    h += `<text x="${s.x}" y="75" text-anchor="middle" font-size="6.5" fill="#5C5448">${s.l}</text>`;
+    const p = proj(s.lat, s.lon);
+    h += `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="1.5" fill="#1C1814"/>`;
+    h += `<text x="${(p.x + s.tx).toFixed(1)}" y="${(p.y + s.ty).toFixed(1)}" text-anchor="middle" font-size="6.5" fill="#5C5448" font-family="'DM Mono',monospace" font-weight="500">${s.label}</text>`;
   });
 
-  // Vinovo PL
-  h += `<circle cx="180" cy="60" r="3" fill="red" stroke="white" stroke-width="1"/>`;
+  // Vinovo P.L. - Pura grafica minimalista
+  h += `<circle cx="${PL.x.toFixed(1)}" cy="${PL.y.toFixed(1)}" r="4.5" fill="${plCol}" stroke="white" stroke-width="1.2"/>`;
 
-  // Treni: rettangoli essenziali
-  treni.forEach(t => {
-    const x = 180 + (t.dir==='Chivasso' ? -t.min*2 : t.min*2);
-    h += `<rect x="${x-6}" y="56" width="12" height="8" rx="1" fill="${t.tipo==='Merci'?'#8A4A10':'#1A5A9A'}"/>`;
+  // Treni: Solo il rettangolo colorato
+  treni.slice(0, 6).forEach(t => {
+    const pos = trainPos(t);
+    if (!pos) return;
+    const isMerci = t.tipo === 'Merci';
+    const trainCol = isMerci ? '#8A4A10' : '#1A5A9A';
+    
+    h += `<rect x="${(pos.x - 14).toFixed(1)}" y="${(pos.y - 6).toFixed(1)}" width="28" height="12" rx="3" fill="${trainCol}" stroke="white" stroke-width="1"/>`;
+    
+    // Etichetta treno minimale
+    if (t.min <= 45) {
+      h += `<text x="${pos.x.toFixed(1)}" y="${(pos.y - 9).toFixed(1)}" text-anchor="middle" font-size="6" fill="${trainCol}" font-family="'DM Mono',monospace" font-weight="700">${t.numero}</text>`;
+    }
   });
+
   document.getElementById('map-svg').innerHTML = h;
 }
 
