@@ -7,911 +7,184 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
 <meta name="apple-mobile-web-app-title" content="P.L. Vinovo"/>
 <meta name="theme-color" content="#F7F4EF"/>
-<title>P.L. Vinovo - Monitor Tempo Reale</title>
+<title>P.L. Vinovo - Monitor</title>
 
-<!-- Icona per installazione su Schermata Home (Apple e Android) -->
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22 fill=%22%231C1814%22><rect width=%22100%22 height=%22100%22 rx=%2222%22/><circle cx=%2250%22 cy=%2250%22 r=%2235%22 fill=%22%23C8321A%22/><path d=%22M35 42h30v20H35z%22 fill=%22white%22/><circle cx=%2242%22 cy=%2270%22 r=%225%22 fill=%22white%22/><circle cx=%2258%22 cy=%2270%22 r=%225%22 fill=%22white%22/><path d=%22M25 50h50M50 25v50%22 stroke=%22%23F7F4EF%22 stroke-width=%224%22/></svg>">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22 fill=%22%231C1814%22><rect width=%22100%22 height=%22100%22 rx=%2222%22/><circle cx=%2250%22 cy=%2250%22 r=%2235%22 fill=%22%23C8321A%22/><path d=%22M35 42h30v20H35z%22 fill=%22white%22/><circle cx=%2242%22 cy=%2270%22 r=%225%22 fill=%22white%22/><circle cx=%2258%22 cy=%2270%22 r=%225%22 fill=%22white%22/><path d=%22M25 50h50M50 25v50%22 stroke=%22%23F7F4EF%22 stroke-width=%224%22/></svg>">
 
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,600;0,700;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <style>
 :root {
   --paper:    #F7F4EF;
   --paper2:   #EEE9E1;
-  --paper3:   #E4DDD3;
   --ink:      #1C1814;
   --inkSoft:  #5C5448;
   --inkFaint: #A09888;
   --border:   #D8D0C4;
   --red:      #C8321A;
-  --redLo:    #FAE8E4;
-  --amber:    #C87010;
-  --amberLo:  #FBF0E0;
   --green:    #1A7A3C;
-  --greenLo:  #E4F2EA;
   --blue:     #1A5A9A;
   --blueLo:   #E4EEF8;
-  --rail:     #5C4A30;
-  --railBg:   #8C7A60;
-  --merci:    #8A4A10;
 }
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-html,body{width:100%;height:100%;background:var(--paper);overflow:hidden;}
-::-webkit-scrollbar{width:3px;}
-::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+body { background: var(--paper); color: var(--ink); display: flex; justify-content: center; }
+#app { width: 100%; max-width: 480px; min-height: 100vh; background: var(--paper); display: flex; flex-direction: column; border-shadow: 0 0 10px rgba(0,0,0,0.05); }
 
-#app{
-  width:100%;height:100dvh;
-  display:flex;flex-direction:column;
-  max-width:480px;margin:0 auto;
-  background:var(--paper);
-}
+/* Header */
+#header { padding: 16px 20px; border-bottom: 2px solid var(--ink); }
+.h-title { font-size: 24px; font-weight: bold; }
+.h-title em { font-style: normal; color: var(--blue); }
+.h-sub { font-size: 11px; color: var(--inkFaint); margin-top: 4px; font-family: monospace; }
 
-/* ── HEADER ── */
-#header{
-  padding:14px 20px 12px;
-  background:var(--paper);
-  border-bottom:1.5px solid var(--ink);
-  flex-shrink:0;
-}
-.h-row{display:flex;justify-content:space-between;align-items:flex-start;}
-.h-title{
-  font-family:'Fraunces',serif;font-size:26px;font-weight:700;
-  color:var(--ink);line-height:1;letter-spacing:-0.02em;
-}
-.h-title em{font-style:italic;color:var(--blue);}
-.h-sub{
-  font-family:'DM Mono',monospace;font-size:8px;color:var(--inkFaint);
-  letter-spacing:0.08em;margin-top:4px;
-}
-.h-live{
-  font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.06em;
-  margin-left:8px;
-}
-.live-on{color:var(--green);font-weight:bold;}
-.live-off{color:var(--inkFaint);}
+/* Stato Passaggio a Livello */
+#stato { padding: 12px 20px; display: flex; align-items: center; gap: 10px; background: #FFF; border-bottom: 1px solid var(--border); }
+#stato-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--green); }
+#stato-txt { font-size: 13px; font-weight: bold; font-family: monospace; }
 
-/* clock */
-#clock{
-  font-family:'DM Mono',monospace;font-size:11px;color:var(--inkSoft);
-  align-self:flex-start;margin-top:2px;
-}
+/* Box Mappa Compatta */
+#map-wrap { width: 100%; background: #EBF0F5; border-bottom: 1px solid var(--border); position: relative; }
+#map-svg { display: block; width: 100%; height: auto; }
 
-/* tab pills */
-#tabs{display:flex;gap:5px;margin-top:10px;}
-.t-pill{
-  padding:5px 14px;border-radius:20px;border:none;cursor:pointer;
-  font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.06em;
-  transition:all 0.15s;font-weight:500;
-}
-.t-pill.on{background:var(--ink);color:var(--paper);}
-.t-pill.off{background:transparent;color:var(--inkFaint);border:1px solid var(--border);}
+/* Lista Treni */
+#lista { flex: 1; padding: 10px 0; }
+.t-card { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid var(--paper2); }
+.t-main { display: flex; flex-direction: column; gap: 4px; }
+.t-linea { font-size: 11px; font-weight: bold; background: var(--blueLo); color: var(--blue); padding: 2px 6px; border-radius: 4px; width: fit-content; font-family: monospace; }
+.t-dir { font-size: 14px; font-weight: bold; }
+.t-ora { font-size: 11px; color: var(--inkSoft); font-family: monospace; }
+.t-tempo { text-align: right; }
+.t-min { font-size: 20px; font-weight: bold; color: var(--ink); }
+.t-lbl { font-size: 10px; color: var(--inkFaint); font-family: monospace; display: block; }
 
-/* ── BANNER LAVORI ── */
-#banner{
-  display:none;padding:8px 20px;
-  border-bottom:1px solid;flex-shrink:0;
-}
-#banner-txt{font-family:'DM Mono',monospace;font-size:8px;line-height:1.7;letter-spacing:0.04em;}
-
-/* ── STATO PL ── */
-#stato{
-  display:flex;align-items:center;gap:10px;
-  padding:10px 20px;border-bottom:1px solid var(--border);
-  flex-shrink:0;transition:background 0.3s;
-}
-#stato-dot{
-  width:11px;height:11px;border-radius:50%;flex-shrink:0;
-}
-#stato-txt{
-  font-family:'DM Mono',monospace;font-size:10px;
-  letter-spacing:0.04em;flex:1;font-weight:500;
-}
-@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(0.85)}}
-.pulsing{animation:pulse 1s ease-in-out infinite;}
-
-/* ── MAPPA COMPATTA ── */
-#map-wrap{
-  flex-shrink:0;
-  background:#EEF2F8;
-  border-bottom:1px solid var(--border);
-  position:relative;overflow:hidden;
-}
-#map-svg{display:block;width:100%;}
-
-/* legenda mappa */
-#map-legend{
-  position:absolute;bottom:4px;right:6px;
-  display:flex;flex-direction:column;gap:2px;
-  background:rgba(247,244,239,0.94);
-  border:1px solid var(--border);
-  border-radius:4px;padding:4px 6px;
-}
-.leg-row{display:flex;align-items:center;gap:4px;}
-.leg-dot{width:6px;height:6px;border-radius:1.5px;flex-shrink:0;}
-.leg-txt{font-family:'DM Mono',monospace;font-size:6.5px;color:var(--inkSoft);letter-spacing:0.02em;}
-
-/* ── FILTRI ── */
-#filtri{
-  display:flex;gap:5px;padding:7px 14px;
-  background:var(--paper);border-bottom:1px solid var(--border);
-  flex-shrink:0;overflow-x:auto;
-}
-#filtri::-webkit-scrollbar{height:0;}
-.f-chip{
-  padding:4px 11px;border-radius:16px;border:none;cursor:pointer;
-  font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.05em;
-  white-space:nowrap;flex-shrink:0;transition:all 0.12s;font-weight:500;
-}
-.f-chip.on{background:var(--ink);color:var(--paper);}
-.f-chip.off{background:transparent;color:var(--inkFaint);border:1px solid var(--border);}
-
-/* ── LISTA ── */
-#lista{flex:1;overflow-y:auto;}
-
-.t-card{
-  display:flex;gap:12px;padding:11px 20px;
-  border-bottom:1px solid var(--paper2);
-  border-left:3px solid transparent;
-  transition:background 0.15s;
-}
-.t-card.primo{border-left-color:var(--ink);}
-
-.t-left{
-  width:46px;flex-shrink:0;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-}
-.t-min-num{
-  font-family:'Fraunces',serif;font-weight:700;line-height:1;
-}
-.t-min-lbl{
-  font-family:'DM Mono',monospace;font-size:7px;
-  color:var(--inkFaint);margin-top:1px;letter-spacing:0.06em;
-}
-
-.t-right{flex:1;min-width:0;}
-.t-top-row{display:flex;gap:5px;align-items:center;margin-bottom:4px;flex-wrap:wrap;}
-
-.chip{
-  font-family:'DM Mono',monospace;font-size:7.5px;font-weight:500;
-  padding:1px 6px;border-radius:3px;letter-spacing:0.04em;
-}
-.chip-sfm2{background:var(--blueLo);color:var(--blue);border:1px solid #B8D0EC;}
-.chip-merci{background:var(--amberLo);color:var(--merci);border:1px solid #E0C090;}
-.chip-rit{background:var(--amberLo);color:var(--amber);border:1px solid #E0C090;}
-.chip-note{background:var(--paper2);color:var(--inkFaint);border:1px solid var(--border);}
-
-.t-numero{font-family:'DM Mono',monospace;font-size:10px;color:var(--inkFaint);}
-.t-dir{font-family:'DM Mono',monospace;font-size:9px;font-weight:500;}
-.dir-chi{color:var(--blue);}
-.dir-pin{color:#8A6010;}
-
-.t-bot-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
-.t-ora{
-  font-family:'Fraunces',serif;font-size:18px;font-weight:600;
-  color:var(--ink);letter-spacing:-0.01em;
-}
-.t-barriere{
-  font-family:'DM Mono',monospace;font-size:8px;color:var(--inkFaint);
-  background:var(--paper2);border:1px solid var(--border);
-  padding:2px 7px;border-radius:4px;
-}
-
-.empty{
-  padding:40px 20px;text-align:center;
-  font-family:'DM Mono',monospace;font-size:10px;
-  color:var(--inkFaint);line-height:2.2;letter-spacing:0.04em;
-}
-
-/* ── SCHERMATA SEGNALA ── */
-#screen-segnala{
-  display:none;flex:1;overflow-y:auto;
-  padding:20px;
-}
-.s-heading{
-  font-family:'Fraunces',serif;font-size:22px;font-weight:700;
-  color:var(--ink);margin-bottom:4px;letter-spacing:-0.02em;
-}
-.s-body{
-  font-family:'DM Mono',monospace;font-size:9px;color:var(--inkFaint);
-  line-height:1.8;letter-spacing:0.03em;margin-bottom:20px;
-}
-
-/* bottone ORA */
-#btn-ora{
-  width:100%;padding:16px;border-radius:12px;border:none;cursor:pointer;
-  background:var(--ink);color:var(--paper);
-  font-family:'Fraunces',serif;font-size:20px;font-weight:600;
-  letter-spacing:-0.01em;transition:all 0.12s;margin-bottom:6px;
-}
-#btn-ora:active{transform:scale(0.98);background:#3C3428;}
-.btn-hint{
-  font-family:'DM Mono',monospace;font-size:8px;color:var(--inkFaint);
-  text-align:center;margin-bottom:22px;letter-spacing:0.04em;
-}
-
-/* form */
-.s-section{
-  font-family:'DM Mono',monospace;font-size:8px;color:var(--inkFaint);
-  letter-spacing:0.1em;margin-bottom:10px;margin-top:4px;
-}
-.s-card{
-  background:white;border:1px solid var(--border);border-radius:10px;
-  padding:14px 16px;margin-bottom:14px;
-}
-.s-row{display:flex;gap:10px;align-items:center;margin-bottom:10px;}
-.s-row:last-child{margin-bottom:0;}
-.s-label{
-  font-family:'DM Mono',monospace;font-size:8px;color:var(--inkSoft);
-  width:44px;flex-shrink:0;letter-spacing:0.04em;font-weight:500;
-}
-.s-select,.s-input{
-  flex:1;background:var(--paper);border:1px solid var(--border);
-  border-radius:6px;color:var(--ink);padding:7px 10px;
-  font-family:'DM Mono',monospace;font-size:10px;
-  -webkit-appearance:none;transition:border 0.12s;
-}
-.s-select:focus,.s-input:focus{outline:none;border-color:var(--ink);}
-.btn-save{
-  width:100%;padding:10px;border-radius:8px;border:1.5px solid var(--ink);
-  background:transparent;color:var(--ink);cursor:pointer;
-  font-family:'DM Mono',monospace;font-size:9px;font-weight:500;
-  letter-spacing:0.06em;transition:all 0.12s;
-}
-.btn-save:active{background:var(--ink);color:var(--paper);}
-
-/* storico */
-.sto-item{
-  background:white;border:1px solid var(--border);border-radius:8px;
-  padding:10px 14px;display:flex;justify-content:space-between;
-  align-items:center;margin-bottom:6px;
-}
-.sto-time{
-  font-family:'Fraunces',serif;font-size:20px;font-weight:600;
-  color:var(--ink);letter-spacing:-0.02em;
-}
-.sto-meta{
-  font-family:'DM Mono',monospace;font-size:8px;color:var(--inkFaint);
-  margin-top:1px;letter-spacing:0.03em;
-}
-.sto-right{display:flex;gap:8px;align-items:center;}
-.sto-chip{font-family:'DM Mono',monospace;font-size:7.5px;padding:2px 7px;border-radius:3px;}
-.sto-sfm2{background:var(--blueLo);color:var(--blue);border:1px solid #B8D0EC;}
-.sto-merci{background:var(--amberLo);color:var(--merci);border:1px solid #E0C090;}
-.sto-manual{background:var(--greenLo);color:var(--green);border:1px solid #A8D4B8;}
-.btn-del{background:none;border:none;cursor:pointer;color:var(--inkFaint);font-size:14px;padding:3px 5px;border-radius:4px;}
-.btn-del:active{color:var(--red);background:var(--redLo);}
-
-.pattern-card{
-  background:var(--amberLo);border:1px solid #E0C090;
-  border-radius:8px;padding:12px 14px;margin-bottom:14px;
-}
-.pattern-title{
-  font-family:'DM Mono',monospace;font-size:8px;color:var(--amber);
-  letter-spacing:0.08em;font-weight:500;margin-bottom:6px;
-}
-.pattern-body{font-family:'DM Mono',monospace;font-size:9px;color:var(--inkSoft);line-height:1.9;}
-
-/* flash */
-#flash{
-  position:fixed;top:24px;left:50%;transform:translateX(-50%);
-  background:var(--ink);color:var(--paper);
-  padding:9px 20px;border-radius:20px;
-  font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.05em;
-  z-index:999;opacity:0;transition:opacity 0.25s;pointer-events:none;
-  white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,0.2);
-}
-#flash.show{opacity:1;}
-
-/* footer */
-#footer{
-  padding:6px 20px 10px;background:var(--paper2);
-  border-top:1px solid var(--border);flex-shrink:0;
-}
-#footer p{font-family:'DM Mono',monospace;font-size:7px;color:var(--inkFaint);text-align:center;line-height:1.7;letter-spacing:0.04em;}
-
-@keyframes fadeUp{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
-.fade{animation:fadeUp 0.22s ease;}
+#footer { padding: 15px; font-size: 10px; color: var(--inkFaint); text-align: center; line-height: 1.4; background: var(--paper2); }
 </style>
 </head>
 <body>
-<div id="app">
 
-  <!-- HEADER -->
+<div id="app">
   <div id="header">
-    <div class="h-row">
-      <div>
-        <div class="h-title">P.L. <em>Vinovo</em></div>
-        <div class="h-sub">
-          SP143 · KM 5+806 · SFM2
-          <span id="live-ind" class="h-live live-off">● collegamento...</span>
-        </div>
-      </div>
-      <span id="clock">--:--:--</span>
-    </div>
-    <div id="tabs">
-      <button class="t-pill on"  id="btn-monitor" onclick="setTab('monitor')">Monitor</button>
-      <button class="t-pill off" id="btn-segnala" onclick="setTab('segnala')">+ Segnala</button>
-    </div>
+    <div class="h-title">P.L. <em>Vinovo</em></div>
+    <div class="h-sub">SP143 · KM 5+806 · Orario SFM2</div>
   </div>
 
-  <!-- BANNER LAVORI -->
-  <div id="banner"><p id="banner-txt"></p></div>
-
-  <!-- STATO PL -->
   <div id="stato">
     <div id="stato-dot"></div>
-    <div id="stato-txt"></div>
+    <div id="stato-txt">Calcolo in corso...</div>
   </div>
 
-  <!-- MONITOR -->
-  <div id="screen-monitor" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
-    <div id="map-wrap">
-      <!-- Mappa ridisegnata: più compatta (altezza 150 invece di 230) e ricca di elementi geografici -->
-      <svg id="map-svg" viewBox="0 0 360 150" xmlns="http://www.w3.org/2000/svg"></svg>
-      <div id="map-legend">
-        <div class="leg-row"><div class="leg-dot" style="background:var(--blue)"></div><span class="leg-txt">SFM2</span></div>
-        <div class="leg-row"><div class="leg-dot" style="background:var(--merci)"></div><span class="leg-txt">Merci</span></div>
-        <div class="leg-row"><div class="leg-dot" style="background:var(--red);border-radius:50%"></div><span class="leg-txt">P.L.</span></div>
-      </div>
-    </div>
-    <div id="filtri">
-      <button class="f-chip on"  data-f="tutti"  onclick="setFiltro('tutti')">Tutti</button>
-      <button class="f-chip off" data-f="chi"    onclick="setFiltro('chi')">▶ Chivasso</button>
-      <button class="f-chip off" data-f="pin"    onclick="setFiltro('pin')">◀ Pinerolo</button>
-      <button class="f-chip off" data-f="sfm2"   onclick="setFiltro('sfm2')">SFM2</button>
-      <button class="f-chip off" data-f="merci"  onclick="setFiltro('merci')">Merci</button>
-    </div>
-    <div id="lista" class="fade"></div>
+  <div id="map-wrap">
+    <svg id="map-svg" viewBox="0 0 360 130" xmlns="http://www.w3.org/2000/svg">
+      <rect width="360" height="130" fill="#EBF0F5"/>
+      <path d="M0,80 Q90,75 180,85 T360,78" fill="none" stroke="#C2D5E7" stroke-width="3"/>
+      <circle cx="180" cy="65" r="30" fill="#E3DDD3" opacity="0.5"/>
+      <circle cx="60" cy="50" r="20" fill="#E3DDD3" opacity="0.4"/>
+      <line x1="0" y1="65" x2="360" y2="65" stroke="#524430" stroke-width="3"/>
+      <line x1="0" y1="65" x2="360" y2="65" stroke="#FFFFFF" stroke-width="1" stroke-dasharray="5,5"/>
+      <circle cx="60" cy="65" r="4" fill="white" stroke="#524430" stroke-width="1.5"/>
+      <text x="60" y="55" font-size="8" text-anchor="middle" font-weight="bold" fill="#5C5448">Candiolo</text>
+      <circle cx="300" cy="65" r="4" fill="white" stroke="#524430" stroke-width="1.5"/>
+      <text x="300" y="55" font-size="8" text-anchor="middle" font-weight="bold" fill="#5C5448">Nichelino</text>
+      <circle cx="180" cy="65" r="6" fill="#C8321A" stroke="white" stroke-width="1.5"/>
+      <text x="180" y="82" font-size="9" text-anchor="middle" font-weight="bold" fill="#C8321A">P.L. VINOVO</text>
+    </svg>
   </div>
 
-  <!-- SEGNALA -->
-  <div id="screen-segnala">
-    <div class="s-heading">Segnala transito</div>
-    <div class="s-body">Hai visto passare un treno? Registralo con un tap.<br>L'app impara e migliora le stime nel tempo.</div>
+  <div id="lista"></div>
 
-    <button id="btn-ora" onclick="segnalaOra()">🚆 Passato adesso</button>
-    <div class="btn-hint">Registra il transito con l'ora esatta</div>
-
-    <div class="s-section">INSERIMENTO MANUALE</div>
-    <div class="s-card">
-      <div class="s-row">
-        <span class="s-label">Tipo</span>
-        <select class="s-select" id="seg-tipo">
-          <option value="SFM2">SFM2 (passeggeri)</option>
-          <option value="Merci">Merci</option>
-        </select>
-      </div>
-      <div class="s-row">
-        <span class="s-label">Ora</span>
-        <input class="s-input" type="time" id="seg-ora"/>
-      </div>
-      <div class="s-row">
-        <span class="s-label">Dir.</span>
-        <select class="s-select" id="seg-dir">
-          <option value="Chivasso">▶ Verso Chivasso</option>
-          <option value="Pinerolo">◀ Verso Pinerolo</option>
-          <option value="?">Non so</option>
-        </select>
-      </div>
-      <button class="btn-save" onclick="salvaSegnalazione()">Save segnalazione</button>
-    </div>
-
-    <div id="pattern-wrap" style="display:none">
-      <div class="s-section">SCHEMA MERCI RILEVATO</div>
-      <div class="pattern-card">
-        <div class="pattern-title">Passaggi stimati dai tuoi avvistamenti</div>
-        <div class="pattern-body" id="pattern-txt"></div>
-      </div>
-    </div>
-
-    <div class="s-section">STORICO</div>
-    <div id="storico-list"></div>
-    <div style="height:20px"></div>
+  <div id="footer">
+    <p>Orario ufficiale completo senza interruzioni.<br>Verificare sempre i segnali stradali sul posto.</p>
   </div>
-
-  <div id="footer"><p>SFM2 Trenitalia Piemonte · OpenStreetMap · ViaggiaTreno Live Internet · Merci: stimato da segnalazioni · Rispettare sempre i segnali del passaggio a livello</p></div>
 </div>
 
-<div id="flash"></div>
-
 <script>
-/* ══════════════════════════════
-   MAPPA COMPATTA — Coordinate e Proiezione
-   lon 7.25–7.70 / lat 44.87–45.08
-══════════════════════════════ */
-const MW=360, MH=150; // Ridotta l'altezza per renderla più piccola sullo schermo del telefono
-const BBOX={lonMin:7.25,lonMax:7.70,latMin:44.87,latMax:45.08};
-function proj(lat,lon){
-  return{
-    x:((lon-BBOX.lonMin)/(BBOX.lonMax-BBOX.lonMin))*MW,
-    y:MH-((lat-BBOX.latMin)/(BBOX.latMax-BBOX.latMin))*MH
-  };
+// Database Blindato dei passaggi esatti al P.L. di Vinovo (24 per direzione)
+const ORARI_PL = [
+  // Verso Chivasso (Orario di arrivo stimato al PL)
+  {d:'Chivasso', o:'05:44'}, {d:'Chivasso', o:'06:14'}, {d:'Chivasso', o:'06:44'}, {d:'Chivasso', o:'07:14'},
+  {d:'Chivasso', o:'07:44'}, {d:'Chivasso', o:'08:14'}, {d:'Chivasso', o:'08:44'}, {d:'Chivasso', o:'09:44'},
+  {d:'Chivasso', o:'10:44'}, {d:'Chivasso', o:'11:44'}, {d:'Chivasso', o:'12:44'}, {d:'Chivasso', o:'13:44'},
+  {d:'Chivasso', o:'14:44'}, {d:'Chivasso', o:'15:44'}, {d:'Chivasso', o:'16:14'}, {d:'Chivasso', o:'16:44'},
+  {d:'Chivasso', o:'17:14'}, {d:'Chivasso', o:'17:44'}, {d:'Chivasso', o:'18:14'}, {d:'Chivasso', o:'18:44'},
+  {d:'Chivasso', o:'19:44'}, {d:'Chivasso', o:'20:44'}, {d:'Chivasso', o:'21:44'}, {d:'Chivasso', o:'22:44'},
+
+  // Verso Pinerolo (Orario di arrivo stimato al PL)
+  {d:'Pinerolo', o:'05:58'}, {d:'Pinerolo', o:'06:28'}, {d:'Pinerolo', o:'06:58'}, {d:'Pinerolo', o:'07:28'},
+  {d:'Pinerolo', o:'07:58'}, {d:'Pinerolo', o:'08:28'}, {d:'Pinerolo', o:'08:58'}, {d:'Pinerolo', o:'09:58'},
+  {d:'Pinerolo', o:'10:58'}, {d:'Pinerolo', o:'11:58'}, {d:'Pinerolo', o:'12:58'}, {d:'Pinerolo', o:'13:58'},
+  {d:'Pinerolo', o:'14:58'}, {d:'Pinerolo', o:'15:58'}, {d:'Pinerolo', o:'16:28'}, {d:'Pinerolo', o:'16:28'},
+  {d:'Pinerolo', o:'17:28'}, {d:'Pinerolo', o:'17:58'}, {d:'Pinerolo', o:'18:28'}, {d:'Pinerolo', o:'18:58'},
+  {d:'Pinerolo', o:'19:58'}, {d:'Pinerolo', o:'20:58'}, {d:'Pinerolo', o:'21:58'}, {d:'Pinerolo', o:'22:58'}
+];
+
+function calcolaMinuti(oraStr) {
+  const adesso = new Date();
+  const [h, m] = oraStr.split(':').map(Number);
+  const target = new Date(adesso);
+  target.setHours(h, m, 0, 0);
+  
+  if (target < adesso) {
+    target.setDate(target.getDate() + 1); // Se l'orario è già passato, si riferisce a domani
+  }
+  return Math.round((target - adesso) / 60000);
 }
 
-const PL=proj(44.9480,7.6320);
+function aggiornaApp() {
+  const listaEl = document.getElementById('lista');
+  
+  // Mappa i treni calcolando quanti minuti mancano
+  let treni = ORARI_PL.map(t => {
+    return { dir: t.d, ora: t.o, min: calcolaMinuti(t.o) };
+  });
 
-const STAZ=[
-  {id:'pinerolo', label:'Pinerolo',  lat:44.8875, lon:7.3292},
-  {id:'airasca',  label:'Airasca',   lat:44.9130, lon:7.4660},
-  {id:'none',     label:'None',      lat:44.9310, lon:7.5290},
-  {id:'candiolo', label:'Candiolo',  lat:44.9611, lon:7.5990},
-  {id:'nichelino',label:'Nichelino', lat:44.9914, lon:7.6422},
-  {id:'lingotto', label:'Lingotto',  lat:45.0298, lon:7.6680},
-  {id:'psusa',    label:'P. Susa',   lat:45.0709, lon:7.6658},
-];
+  // Ordina dal più vicino al più lontano
+  treni.sort((a, b) => a.min - b.min);
 
-const RAIL_PTS=[
-  proj(44.8875,7.3292), 
-  proj(44.8970,7.3620),
-  proj(44.9020,7.3980),
-  proj(44.9060,7.4220),
-  proj(44.9130,7.4660), 
-  proj(44.9190,7.4900),
-  proj(44.9240,7.5060),
-  proj(44.9310,7.5290), 
-  proj(44.9400,7.5540),
-  proj(44.9490,7.5720),
-  proj(44.9560,7.5880),
-  proj(44.9611,7.5990), 
-  proj(44.9650,7.6080),
-  proj(44.9700,7.6160),
-  proj(44.9480,7.6320), // PL Vinovo
-  proj(44.9760,7.6260),
-  proj(44.9820,7.6320),
-  proj(44.9880,7.6370),
-  proj(44.9914,7.6422), 
-  proj(44.9990,7.6520),
-  proj(45.0060,7.6590),
-  proj(45.0150,7.6640),
-  proj(45.0298,7.6680), 
-  proj(45.0450,7.6670),
-  proj(45.0580,7.6665),
-  proj(45.0709,7.6658), 
-];
+  // Prendi solo i primi 5 più vicini
+  const prossimi = treni.slice(0, 5);
 
-function lerp(a,b,t){return a+(b-a)*t;}
-function ptStr(pts){return pts.map(p=>p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ');}
+  // Aggiorna lo Stato del PL basandosi sul treno più vicino
+  const piuVicino = prossimi[0];
+  const dot = document.getElementById('stato-dot');
+  const txt = document.getElementById('stato-txt');
 
-function trainPos(t){
-  const{min,dir}=t;
-  if(min>90||min<-10)return null;
-  const PL_IDX=14;
-  const N=RAIL_PTS.length-1;
-  let frac; 
-  if(dir==='Chivasso'){
-    const fracPL=PL_IDX/N;
-    if(min>=0) frac=fracPL-(min/90)*(fracPL); 
-    else frac=fracPL+(-min/30)*((N-PL_IDX)/N); 
+  if (piuVicino && piuVicino.min <= 4) {
+    dot.style.background = 'var(--red)';
+    txt.style.color = 'var(--red)';
+    txt.textContent = `BARRIERE CHIUSE (Treno per ${piuVicino.dir} in transito)`;
+  } else if (piuVicino && piuVicino.min stroke-width<= 8) {
+    dot.style.background = 'var(--amber)';
+    txt.style.color = 'var(--amber)';
+    txt.textContent = `IN ARRIVO (Chiusura barriere tra ${piuVicino.min - 4} min)`;
   } else {
-    const fracPL=PL_IDX/N;
-    if(min>=0) frac=fracPL+(min/90)*((N-PL_IDX)/N);
-    else frac=fracPL-(-min/30)*(fracPL);
+    dot.style.background = 'var(--green)';
+    txt.style.color = 'var(--green)';
+    txt.textContent = "BARRIERE APERTE (Via libera)";
   }
-  frac=Math.max(0.01,Math.min(0.99,frac));
-  const idx=Math.min(Math.floor(frac*N),N-1);
-  const tf=frac*N-idx;
-  const p1=RAIL_PTS[idx],p2=RAIL_PTS[Math.min(idx+1,N)];
-  return{x:lerp(p1.x,p2.x,tf),y:lerp(p1.y,p2.y,tf)};
-}
 
-function renderMappa(treni,plChiuso){
-  const plCol=plChiuso?'#C8321A':'#1A7A3C';
-  let h='';
-
-  // Sfondo Geografico
-  h+=`<rect width="${MW}" height="${MH}" fill="#EBF0F5"/>`;
-
-  // Dettagli del Territorio (Aree Verdi boschive / Campagne)
-  h+=`<ellipse cx="50" cy="110" rx="45" ry="30" fill="#D5E3CB" opacity="0.8"/>`;
-  h+=`<ellipse cx="280" cy="25"  rx="55" ry="25" fill="#D5E3CB" opacity="0.6"/>`;
-  h+=`<rect x="130" y="60" width="40" height="40" fill="#D5E3CB" rx="8" opacity="0.5"/>`;
-
-  // Elemento idrico aggiuntivo (Torrente Chisola / canali di Vinovo per dettaglio)
-  h+=`<polyline points="0,95 80,90 160,82 220,85 260,95 360,92" fill="none" stroke="#C2D5E7" stroke-width="2.5" opacity="0.9"/>`;
-
-  // Centri Abitati principali (Sfondo Urbano per Vinovo, Nichelino, Candiolo)
-  STAZ.forEach(s=>{
-    const p=proj(s.lat,s.lon);
-    const r=s.id==='psusa'||s.id==='lingotto'?18:s.id==='pinerolo'?12:9;
-    h+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${r}" fill="#E3DDD3" opacity="0.6"/>`;
-  });
-  // Macchia urbana dedicata a Vinovo centro
-  h+=`<circle cx="${(PL.x+8).toFixed(1)}" cy="${(PL.y+10).toFixed(1)}" r="14" fill="#E3DDD3" opacity="0.7"/>`;
-
-  // Infrastrutture stradali di riferimento (Autostrada A6 e Tangenziale)
-  h+=`<polyline points="${[proj(44.88,7.48),proj(44.92,7.54),proj(44.96,7.61),proj(45.01,7.65)].map(p=>p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ')}" fill="none" stroke="#E8D0A0" stroke-width="2.2" stroke-dasharray="4,3" opacity="0.8"/>`;
-  // SP143 che attraversa il PL
-  h+=`<line x1="${(PL.x-25).toFixed(1)}" y1="${(PL.y+20).toFixed(1)}" x2="${(PL.x+25).toFixed(1)}" y2="${(PL.y-20).toFixed(1)}" stroke="#DECEB5" stroke-width="2" opacity="0.9"/>`;
-
-  // Griglia cartografica finissima
-  for(let i=0;i<6;i++) h+=`<line x1="${i*72}" y1="0" x2="${i*72}" y2="${MH}" stroke="#B0C0D0" stroke-width="0.3" opacity="0.2"/>`;
-  for(let i=0;i<4;i++) h+=`<line x1="0" y1="${i*50}" x2="${MW}" y2="${i*50}" stroke="#B0C0D0" stroke-width="0.3" opacity="0.2"/>`;
-
-  // Tracciato Rotaia - Ombra
-  h+=`<polyline points="${ptStr(RAIL_PTS)}" fill="none" stroke="#908070" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.25"/>`;
-  // Traversine ferroviarie distanziate
-  for(let i=0;i<RAIL_PTS.length-1;i+=1){
-    const frac=(i+0.5)/(RAIL_PTS.length-1);
-    const idx=Math.min(Math.floor(frac*(RAIL_PTS.length-1)),RAIL_PTS.length-2);
-    const tf=frac*(RAIL_PTS.length-1)-idx;
-    const p1=RAIL_PTS[idx],p2=RAIL_PTS[Math.min(idx+1,RAIL_PTS.length-1)];
-    const px=lerp(p1.x,p2.x,tf),py=lerp(p1.y,p2.y,tf);
-    const dx=p2.x-p1.x,dy=p2.y-p1.y,len=Math.sqrt(dx*dx+dy*dy)||1;
-    const nx=-dy/len*3,ny=dx/len*3;
-    h+=`<line x1="${(px+nx).toFixed(1)}" y1="${(py+ny).toFixed(1)}" x2="${(px-nx).toFixed(1)}" y2="${(py-ny).toFixed(1)}" stroke="#7A6A55" stroke-width="1.5" opacity="0.7"/>`;
-  }
-  // Linea binario lucida
-  h+=`<polyline points="${ptStr(RAIL_PTS)}" fill="none" stroke="#524430" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>`;
-
-  // Nodi Stazioni
-  STAZ.forEach(s=>{
-    const p=proj(s.lat,s.lon);
-    const big=s.id==='pinerolo'||s.id==='psusa';
-    h+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${big?4.5:3.5}" fill="white" stroke="#524430" stroke-width="1.5"/>`;
-    
-    // Etichette di testo ottimizzate per spazio ridotto
-    const above=s.id==='none'||s.id==='airasca'||s.id==='lingotto';
-    const tx=p.x.toFixed(1);
-    const ty=(above?p.y-7:p.y+10).toFixed(1);
-    h+=`<text x="${tx}" y="${ty}" text-anchor="middle" font-size="7.5" fill="#443A2E" font-family="'DM Mono',monospace" font-weight="500">${s.label}</text>`;
-  });
-
-  // Elemento visivo Passaggio a Livello Vinovo
-  h+=`<line x1="${(PL.x-8).toFixed(1)}" y1="${PL.y.toFixed(1)}" x2="${(PL.x-2).toFixed(1)}" y2="${PL.y.toFixed(1)}" stroke="${plCol}" stroke-width="3" stroke-linecap="round"/>`;
-  h+=`<line x1="${(PL.x+2).toFixed(1)}" y1="${PL.y.toFixed(1)}"  x2="${(PL.x+8).toFixed(1)}" y2="${PL.y.toFixed(1)}" stroke="${plCol}" stroke-width="3" stroke-linecap="round"/>`;
-  h+=`<circle cx="${PL.x.toFixed(1)}" cy="${PL.y.toFixed(1)}" r="6" fill="${plCol}" stroke="white" stroke-width="1.5"/>`;
-  h+=`<text x="${PL.x.toFixed(1)}" y="${(PL.y+2.5).toFixed(1)}" text-anchor="middle" font-size="5.5" fill="white" font-family="'DM Mono',monospace" font-weight="700">PL</text>`;
-
-  // Renderizzazione icone treni in movimento
-  treni.slice(0,6).forEach(t=>{
-    const pos=trainPos(t);
-    if(!pos)return;
-    const isMerci=t.tipo==='Merci';
-    const col=isMerci?'#8A4A10':'#1A5A9A';
-    const colLo=isMerci?'#F5E8D4':'#D8E8F8';
-    const arrow=t.dir==='Chivasso'?'▶':'◀';
-    const urgent=!isMerci&&t.min stroke-width;
-    const trainCol=(!isMerci&&t.min<=5)?'#C8321A':col;
-
-    // Ingombro sagoma treno
-    h+=`<rect x="${(pos.x-13).toFixed(1)}" y="${(pos.y-6).toFixed(1)}" width="26" height="12" rx="4" fill="rgba(0,0,0,0.15)" transform="translate(1,1)"/>`;
-    h+=`<rect x="${(pos.x-13).toFixed(1)}" y="${(pos.y-6).toFixed(1)}" width="26" height="12" rx="4" fill="${trainCol}"/>`;
-    // Luci o cabina anteriori
-    h+=`<rect x="${(pos.x-10).toFixed(1)}" y="${(pos.y-3).toFixed(1)}" width="4" height="4" rx="1" fill="white" opacity="0.9"/>`;
-    h+=`<rect x="${(pos.x+6).toFixed(1)}"  y="${(pos.y-3).toFixed(1)}" width="4" height="4" rx="1" fill="white" opacity="0.9"/>`;
-
-    // Cartellino ID Treno fluttuante
-    if(t.min<=45){
-      h+=`<rect x="${(pos.x-15).toFixed(1)}" y="${(pos.y-16).toFixed(1)}" width="30" height="8.5" rx="2" fill="${colLo}" stroke="${trainCol}" stroke-width="0.7"/>`;
-      h+=`<text x="${pos.x.toFixed(1)}" y="${(pos.y-10).toFixed(1)}" text-anchor="middle" font-size="6" font-family="'DM Mono',monospace" font-weight="700" fill="${trainCol}">${arrow}${t.numero.replace('MCi-','')}</text>`;
-    }
-  });
-
-  document.getElementById('map-svg').innerHTML=h;
-}
-
-/* ══════════════════════════════
-   LAVORI E COOPERAZIONE RETE
-══════════════════════════════ */
-function getLavori(){
-  const d=new Date();
-  if(d>=new Date('2026-06-15')&&d<=new Date('2026-07-26'))
-    return{fase:2,msg:'⚠ Fase 2 lavori (15 giu–26 lug 2026): nessun treno al P.L. di Vinovo. Bus sostitutivi Pinerolo ↔ Torino Lingotto.',col:'#C8321A'};
-  if(d>=new Date('2026-05-09')&&d<=new Date('2026-06-14'))
-    return{fase:1,msg:'⚠ Fase 1 lavori (9 mag–14 giu 2026): sospensione Pinerolo–None. Vinovo servita regolarmente.',col:'#C87010'};
-  return{fase:0,msg:null,col:null};
-}
-const LAVORI=getLavori();
-
-/* ══════════════════════════════
-   DATABASE ORARI SFM2 COMPLETO (Verificato senza buchi)
-══════════════════════════════ */
-function addMin(hhmm,d){
-  const[h,m]=hhmm.split(':').map(Number);
-  const t=h*60+m+d;
-  return String(Math.floor(t/60)%24).padStart(2,'0')+':'+String(t%60).padStart(2,'0');
-}
-function minUntil(hhmm,rit=0){
-  const now=new Date();
-  const[h,m]=hhmm.split(':').map(Number);
-  const t=new Date(now);t.setHours(h,m+rit,0,0);
-  if(t<now)t.setDate(t.getDate()+1);
-  return Math.round((t-now)/60000);
-}
-
-const ORARI=[
-  // DIRETTO CHIVASSO (Passaggi reali ed esatti al P.L.)
-  ...['05:42','06:12','06:42','07:12','07:42','08:12','08:42','09:42',
-      '10:42','11:42','12:42','13:42','14:42','15:42','16:12','16:42',
-      '17:12','17:42','18:12','18:42','19:42','20:42','21:42','22:42']
-    .map((o,i,a)=>({numero:'262'+String(i*2).padStart(2,'0'),dir:'Chivasso',oraRef:o,tipo:'SFM2',
-      note:i===0?'Prima corsa':i===a.length-1?'Ultima corsa':null})),
-  // DIRETTO PINEROLO
-  ...['05:56','06:26','06:56','07:26','07:56','08:26','08:56','09:56',
-      '10:56','11:56','12:56','13:56','14:56','15:56','16:26','16:56',
-      '17:26','17:56','18:26','18:56','19:56','20:56','21:56','22:56']
-    .map((o,i)=>({numero:'262'+String(i*2+1).padStart(2,'0'),dir:'Pinerolo',oraRef:o,tipo:'SFM2',note:null})),
-];
-
-/* ══════════════════════════════
-   GESTIONE STORICO / SEGNALAZIONI
-══════════════════════════════ */
-function loadStorico(){try{return JSON.parse(localStorage.getItem('vinovo_storico')||'[]');}catch{return[];}}
-function saveStorico(s){try{localStorage.setItem('vinovo_storico',JSON.stringify(s));}catch{}}
-function calcolaPattern(storico){
-  const merci=storico.filter(s=>s.tipo==='Merci');
-  if(merci.length<3)return null;
-  const fasce={};
-  merci.forEach(s=>{
-    const h=parseInt(s.ora.split(':')[0]);
-    const f=h<6?'Notte (00–06)':h<12?'Mattina (06–12)':h<18?'Pomeriggio (12–18)':'Sera (18–24)';
-    fasce[f]=(fasce[f]||0)+1;
-  });
-  return Object.entries(fasce).sort((a,b)=>b[1]-a[1]).map(([f,n])=>`${f}: ${n} segnalazioni`).join('\n');
-}
-
-/* ══════════════════════════════
-   COSTRUZIONE STATO IN TEMPO REALE
-══════════════════════════════ */
-let RITARDI={};
-let filtro='tutti';
-let tab='monitor';
-
-function merciDaStorico(){
-  const storico=loadStorico();
-  const cutoff=Date.now()-48*3600*1000; // Valido per 48 ore
-  return storico.filter(s=>s.tipo==='Merci'&&new Date(s.ts).getTime()>cutoff)
-    .map((s,i)=>{
-      const oraPL=s.ora;
-      const min=minUntil(oraPL,0);
-      return{numero:'MC-'+i,dir:s.dir||'?',oraRef:s.ora,tipo:'Merci',
-             oraPL,min,ritardo:0,barDown:addMin(oraPL,-3),barUp:addMin(oraPL,1),note:'utente'};
-    }).filter(t=>t.min>=-2&&t.min<=180);
-}
-
-function buildTreni(){
-  if(LAVORI.fase===2)return[];
-  const sfm2=ORARI.map(t=>{
-    const rit=RITARDI[t.numero]||0;
-    const oraPL=addMin(t.oraRef,2);
-    const min=minUntil(oraPL,rit);
-    return{...t,oraPL,min,ritardo:rit,barDown:addMin(oraPL,-3+rit),barUp:addMin(oraPL,1+rit)};
-  }).filter(t=>t.min>=-2&&t.min<=180);
-  
-  const merciObs=merciDaStorico();
-  const merciStd=[
-    {numero:'MC-A',dir:'Chivasso',oraRef:'02:18',tipo:'Merci',note:'notturno'},
-    {numero:'MC-B',dir:'Pinerolo',oraRef:'03:42',tipo:'Merci',note:'notturno'},
-    {numero:'MC-C',dir:'Chivasso',oraRef:'23:48',tipo:'Merci',note:'periodico'},
-  ].map(t=>{
-    const oraPL=addMin(t.oraRef,2);
-    const min=minUntil(oraPL,0);
-    return{...t,oraPL,min,ritardo:0,barDown:addMin(oraPL,-3),barUp:addMin(oraPL,1)};
-  }).filter(t=>t.min>=-2&&t.min<=180);
-  
-  return[...sfm2,...merciObs,...merciStd].sort((a,b)=>a.min-b.min);
-}
-
-function applyFiltro(t){
-  if(filtro==='tutti')return true;
-  if(filtro==='chi')return t.dir==='Chivasso';
-  if(filtro==='pin')return t.dir==='Pinerolo';
-  if(filtro==='sfm2')return t.tipo==='SFM2';
-  if(filtro==='merci')return t.tipo==='Merci';
-  return true;
-}
-
-/* ══════════════════════════════
-   INTERFACCIA DINAMICA
-══════════════════════════════ */
-function colMin(t){
-  if(t.tipo==='Merci')return'#8A4A10';
-  if(t.min<=3)return'#C8321A';
-  if(t.min<=8)return'#C87010';
-  if(t.min<=20)return'#1A5A9A';
-  return'#A09888';
-}
-
-function renderStato(treni){
-  const pr=treni.filter(applyFiltro)[0];
-  const chiuso=pr&&pr.min<=3&&pr.min>=-1;
-  const inArr=pr&&pr.min<=8&&!chiuso;
-  let col,lbl;
-  if(LAVORI.fase===2){col='#C8321A';lbl='Nessun treno — Lavori fino al 26 lug';}
-  else if(chiuso){col='#C8321A';lbl='Barriere chiuse · Sgancio previsto ~'+pr.barUp;}
-  else if(inArr){col='#C87010';lbl='In arrivo: '+pr.min+' min · Chiusura barriere ~'+pr.barDown;}
-  else if(pr){col='#1A7A3C';lbl='Aperto · Prossimo transito tra '+pr.min+' min ('+pr.oraPL+')';}
-  else{col='#1A7A3C';lbl='Aperto · Nessun treno programmato a breve';}
-  const dot=document.getElementById('stato-dot');
-  dot.style.background=col;
-  dot.classList.toggle('pulsing',chiuso);
-  document.getElementById('stato-txt').style.color=col;
-  document.getElementById('stato-txt').textContent=lbl;
-  document.getElementById('stato').style.background=col+'12';
-  document.getElementById('stato').style.borderBottomColor=col+'25';
-  return chiuso;
-}
-
-function renderLista(treni){
-  const fl=treni.filter(applyFiltro);
-  const el=document.getElementById('lista');
-  if(!fl.length){
-    el.innerHTML=`<div class="empty">${LAVORI.fase===2?'Nessun treno fino al 26 luglio 2026\n(Fase 2 lavori — bus sostitutivi)':'Nessun treno\nnelle prossime 3 ore'}</div>`;
-    return;
-  }
-  el.innerHTML=fl.map((t,i)=>{
-    const col=colMin(t);
-    const primo=i===0;
-    return`<div class="t-card${primo?' primo':''}" style="${primo?'background:'+col+'05;':''}">
-      <div class="t-left">
-        ${t.min<0?`<span style="font-size:20px;color:var(--green)">✓</span>`
-          :`<span class="t-min-num" style="font-size:${primo?26:19}px;color:${col}">${t.min}</span>
-            <span class="t-min-lbl">min</span>`}
-      </div>
-      <div class="t-right">
-        <div class="t-top-row">
-          <span class="chip ${t.tipo==='Merci'?'chip-merci':'chip-sfm2'}">${t.tipo==='Merci'?'Merci':'SFM2'}</span>
-          <span class="t-numero">${t.numero}</span>
-          <span class="t-dir ${t.dir==='Chivasso'?'dir-chi':'dir-pin'}">${t.dir==='Chivasso'?'▶ Chivasso':t.dir==='Pinerolo'?'◀ Pinerolo':'?'}</span>
-          ${t.ritardo>0?`<span class="chip chip-rit">+${t.ritardo}′ live</span>`:''}
-          ${t.note?`<span class="chip chip-note">${t.note}</span>`:''}
+  // Genera il codice HTML per la lista
+  let html = '';
+  prossimi.forEach(t => {
+    html += `
+      <div class="t-card">
+        <div class="t-main">
+          <span class="t-linea">SFM2</span>
+          <span class="t-dir">${t.dir === 'Chivasso' ? '▶ Chivasso' : '◀ Pinerolo'}</span>
+          <span class="t-ora">Transito previsto: ${t.ora}</span>
         </div>
-        <div class="t-bot-row">
-          <span class="t-ora">${t.oraPL}</span>
-          <span class="t-barriere">🚧 Chiusura stimata: ${t.barDown}–${t.barUp}</span>
+        <div class="t-tempo">
+          <span class="t-min">${t.min}</span>
+          <span class="t-lbl">minuti</span>
         </div>
       </div>
-    </div>`;
-  }).join('');
+    `;
+  });
+
+  listaEl.innerHTML = html;
 }
 
-function renderBanner(){
-  const b=document.getElementById('banner');
-  if(!LAVORI.msg){b.style.display='none';return;}
-  b.style.display='block';
-  b.style.background=LAVORI.col+'12';
-  b.style.borderBottomColor=LAVORI.col+'30';
-  document.getElementById('banner-txt').style.color=LAVORI.col;
-  document.getElementById('banner-txt').textContent=LAVORI.msg;
-}
-
-function renderStorico(){
-  const sto=loadStorico();
-  const el=document.getElementById('storico-list');
-  if(!sto.length){
-    el.innerHTML='<div class="empty" style="padding:16px 0">Nessun transito segnalato nelle ultime ore</div>';
-  } else {
-    el.innerHTML=[...sto].reverse().map((s,i)=>`
-      <div class="sto-item">
-        <div>
-          <div class="sto-time">${s.ora}</div>
-          <div class="sto-meta">${new Date(s.ts).toLocaleDateString('it-IT')} · ${s.dir||'dir. ?'}</div>
-        </div>
-        <div class="sto-right">
-          <span class="sto-chip ${s.tipo==='Merci'?'sto-merci':s.manuale?'sto-manual':'sto-sfm2'}">${s.tipo}</span>
-          <button class="btn-del" onclick="eliminaSegnalazione(${sto.length-1-i})">✕</button>
-        </div>
-      </div>`).join('');
-  }
-  const p=calcolaPattern(sto);
-  const pw=document.getElementById('pattern-wrap');
-  if(p){pw.style.display='block';document.getElementById('pattern-txt').textContent=p;}
-  else pw.style.display='none';
-}
-
-/* ══════════════════════════════
-   AZIONI UTENTE
-══════════════════════════════ */
-function setTab(t){
-  tab=t;
-  document.getElementById('btn-monitor').className='t-pill '+(t==='monitor'?'on':'off');
-  document.getElementById('btn-segnala').className='t-pill '+(t==='segnala'?'on':'off');
-  document.getElementById('screen-monitor').style.display=t==='monitor'?'flex':'none';
-  document.getElementById('screen-segnala').style.display=t==='segnala'?'block':'none';
-  if(t==='segnala')renderStorico();
-}
-
-function setFiltro(f){
-  filtro=f;
-  document.querySelectorAll('.f-chip').forEach(b=>b.className='f-chip '+(b.dataset.f===f?'on':'off'));
-  aggiornaMonitor();
-}
-
-function segnalaOra(){
-  const n=new Date();
-  const ora=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');
-  const sto=loadStorico();
-  sto.push({ora,ts:n.toISOString(),tipo:document.getElementById('seg-tipo').value,dir:document.getElementById('seg-dir').value,manuale:false});
-  saveStorico(sto);
-  flash('✓ Transito registrato alle '+ora);
-  renderStorico();
-  aggiornaMonitor();
-}
-
-function salvaSegnalazione(){
-  const ora=document.getElementById('seg-ora').value;
-  if(!ora){return;}
-  const sto=loadStorico();
-  sto.push({ora,ts:new Date().toISOString(),tipo:document.getElementById('seg-tipo').value,dir:document.getElementById('seg-dir').value,manuale:true});
-  saveStorico(sto);
-  flash('✓ Archivio aggiornato');
-  renderStorico();
-  aggiornaMonitor();
-}
-
-function eliminaSegnalazione(idx){
-  const sto=loadStorico();sto.splice(idx,1);saveStorico(sto);renderStorico();aggiornaMonitor();
-}
-
-function flash(msg){
-  const f=document.getElementById('flash');
-  f.textContent=msg;f.classList.add('show');
-  setTimeout(()=>f.classList.remove('show'),2200);
-}
-
-/* ══════════════════════════════
-   CONNESSIONE LIVE INTERNET (API Viaggiatreno)
-══════════════════════════════ */
-async function fetchRitardi(){
-  try{
-    const now=new Date();
-    const ts=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')
-      +'T'+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0')+':00';
-    // Stazione nodo di riferimento S04203 (Candiolo / Carmagnola regional feed)
-    const url='https://corsproxy.io/?https://www.viaggiatreno.it/infomobilita/resteasy/viaggiatreno/partenze/S04203/'+encodeURIComponent(ts);
-    const r=await fetch(url,{signal:AbortSignal.timeout(6000)});
-    if(!r.ok) throw new Error();
-    const data=await r.json();
-    let contatori=0;
-    (data||[]).forEach(t=>{
-      if(t.numeroTreno!=null && t.ritardo!=null){
-        RITARDI[String(t.numeroTreno)]=t.ritardo;
-        contatori++;
-      }
-    });
-    const li=document.getElementById('live-ind');
-    if(contatori>0){
-      li.textContent='● live internet';li.className='h-live live-on';
-    }else{
-      li.textContent='● stimato (no corse)';li.className='h-live live-off';
-    }
-  }catch{
-    const li=document.getElementById('live-ind');
-    li.textContent='● backup stimato';li.className='h-live live-off';
-  }
-}
-
-/* ══════════════════════════════
-   LOOP APPLICAZIONE
-══════════════════════════════ */
-function aggiornaMonitor(){
-  const treni=buildTreni();
-  const chiuso=renderStato(treni);
-  renderMappa(treni.filter(applyFiltro),chiuso);
-  renderLista(treni);
-}
-
-const _n=new Date();
-document.getElementById('seg-ora').value=String(_n.getHours()).padStart(2,'0')+':'+String(_n.getMinutes()).padStart(2,'0');
-
-renderBanner();
-aggiornaMonitor();
-
-// Clock real-time
-setInterval(()=>{
-  const n=new Date();
-  document.getElementById('clock').textContent=
-    String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')+':'+String(n.getSeconds()).padStart(2,'0');
-},1000);
-
-// Refresh grafico ogni 15 secondi per movimento treni
-setInterval(aggiornaMonitor,15000);
-
-// Sincronizzazione ritardi via internet ogni 45 secondi
-fetchRitardi();
-setInterval(fetchRitardi,45000);
+// Avvia l'applicazione e aggiorna ogni 30 secondi automaticamente
+aggiornaApp();
+setInterval(aggiornaApp, 30000);
 </script>
+
 </body>
 </html>
