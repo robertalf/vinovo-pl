@@ -620,40 +620,45 @@ function delS(i){const s=ldS();s.splice(i,1);svS(s);rStorico();tick();}
 function flash(msg){const f=document.getElementById('flash');f.textContent=msg;f.classList.add('show');setTimeout(()=>f.classList.remove('show'),2200);}
 
 /* ═══════════════════════════════════════════════
-   API VIAGGIO TRENO
-   Partenze da Candiolo (S04203) — aggiorna orari live
-   e ritardi in tempo reale
+   SERVER RENDER — interroga ogni 30s il server che
+   a sua volta aggiorna orari e ritardi da ViaggiaTreno
 ═══════════════════════════════════════════════ */
+const SERVER_URL = 'https://vinovo-server.onrender.com';
+
 async function fetchVT(){
   try{
-    const n=new Date();
-    const ts=n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-'+String(n.getDate()).padStart(2,'0')
-      +'T'+String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')+':00';
-    const url='https://corsproxy.io/?https://www.viaggiatreno.it/infomobilita/resteasy/viaggiatreno/partenze/S04203/'+encodeURIComponent(ts);
-    const r=await fetch(url,{signal:AbortSignal.timeout(8000)});
-    if(!r.ok)throw 0;
-    const d=await r.json();
-    let trovatiLive=0;
-    (d||[]).forEach(t=>{
-      if(t.numeroTreno!=null){
-        if(t.ritardo!=null)RITARDI[String(t.numeroTreno)]=t.ritardo;
-        // Aggiorna orario PL in tempo reale se disponibile
-        if(t.orarioPartenza){
-          const h=Math.floor(t.orarioPartenza/100),m=t.orarioPartenza%100;
-          const refOra=String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
-          ORARI_LIVE[String(t.numeroTreno)]=aM(refOra,2+(t.ritardo||0));
-          trovatiLive++;
-        }
-      }
-    });
-    liveDisponibile=trovatiLive>0;
-    const li=document.getElementById('live');
-    li.textContent=liveDisponibile?' ● live rfi':' ● orari fissi';
-    li.className=liveDisponibile?'lon':'lof';
+    const r = await fetch(SERVER_URL + '/orari', {signal: AbortSignal.timeout(12000)});
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    const d = await r.json();
+
+    // Aggiorna ritardi
+    if(d.ritardi){
+      Object.assign(RITARDI, d.ritardi);
+    }
+
+    // Aggiorna orari live se il server li ha ottenuti da ViaggiaTreno
+    if(d.orari && d.orari.length >= 10){
+      d.orari.forEach(t => {
+        if(t.oraPL) ORARI_LIVE[t.n] = t.oraPL;
+      });
+      liveDisponibile = true;
+    }
+
+    const li = document.getElementById('live');
+    const fonte = d.fonte || '';
+    if(fonte.includes('live')){
+      li.textContent = ' ● live';
+      li.className = 'lon';
+    } else {
+      li.textContent = ' ● RFI';
+      li.className = 'lon'; // RFI fissi è comunque affidabile
+    }
     rOrarioAvviso();
-  }catch{
-    liveDisponibile=false;
-    const li=document.getElementById('live');li.textContent=' ● stimato';li.className='lof';
+  } catch(err){
+    liveDisponibile = false;
+    const li = document.getElementById('live');
+    li.textContent = ' ● stimato';
+    li.className = 'lof';
     rOrarioAvviso();
   }
 }
