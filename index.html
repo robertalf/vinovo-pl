@@ -427,7 +427,7 @@ let filtro='tutti', curTab='mon';
 function merciSto(){
   const cut=Date.now()-48*3600e3;
   return ldS().filter(s=>s.tp==='Merci'&&new Date(s.ts).getTime()>cut)
-    .map((s,i)=>{const sec=secTo(s.ora);return{n:'Mci-'+i,dir:s.dir||'?',tp:'Merci',oraPL:s.ora,sec,min:Math.floor(sec/60),rit:0,bD:aM(s.ora,-3),bU:aM(s.ora,1),note:'segnalato'};})
+    .map((s,i)=>{const sec=secTo(s.ora);return{n:'Mci-'+i,dir:s.dir||'?',tp:'Merci',oraPL:s.ora,sec,min:Math.floor(sec/60),rit:0,bD:aM(s.ora,-2),bU:aM(s.ora,1),note:'segnalato'};})
     .filter(t=>t.sec>=-180&&t.sec<=10800);
 }
 
@@ -444,13 +444,13 @@ function buildTreni(){
     const sec=secTo(oraPL,rit);
     if(sec>=-180&&sec<=10800){
       lista.push({n:t.n,dir:t.dir,tp:'SFM2',oraPL,sec,min:Math.floor(sec/60),rit,
-        bD:aM(oraPL,-3+rit),bU:aM(oraPL,1+rit),note:null});
+        bD:aM(oraPL,-2+rit),bU:aM(oraPL,1+rit),note:null});
     }
   });
 
   // Merci standard + segnalazioni
   [{n:'MCi-A',dir:'Chivasso',o:'02:20'},{n:'MCi-B',dir:'Pinerolo',o:'03:44'},{n:'MCi-C',dir:'Chivasso',o:'23:50'}]
-    .forEach(t=>{const sec=secTo(t.o);if(sec>=-180&&sec<=10800)lista.push({n:t.n,dir:t.dir,tp:'Merci',oraPL:t.o,sec,min:Math.floor(sec/60),rit:0,bD:aM(t.o,-3),bU:aM(t.o,1),note:'indicativo'});});
+    .forEach(t=>{const sec=secTo(t.o);if(sec>=-180&&sec<=10800)lista.push({n:t.n,dir:t.dir,tp:'Merci',oraPL:t.o,sec,min:Math.floor(sec/60),rit:0,bD:aM(t.o,-2),bU:aM(t.o,1),note:'indicativo'});});
 
   return[...lista,...merciSto()].sort((a,b)=>a.sec-b.sec);
 }
@@ -509,7 +509,10 @@ function cMin(t){
 }
 
 function rStato(tr){
-  const pr=tr.filter(apF)[0],ch=pr&&pr.sec<=240&&pr.sec>=-60,ia=pr&&pr.sec<=480&&!ch;
+  // Prendo il primo treno che deve ancora passare (o è appena passato da meno di 60s)
+  const tutti=tr.filter(apF);
+  const pr=tutti.find(t=>t.sec>=-60)||tutti[0];
+  const ch=pr&&pr.sec<=120&&pr.sec>=-60,ia=pr&&pr.sec<=480&&!ch;
   let col,lbl;
   if(LAV.blocca){col='#C8321A';lbl='Nessun treno — Lavori fase 2 (fino al 26 lug)';}
   else if(ch){col='#C8321A';lbl=`Barriere chiuse · Riapertura ~${pr.bU}`;}
