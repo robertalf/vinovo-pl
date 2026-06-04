@@ -451,7 +451,7 @@ let filtro='tutti', curTab='mon';
 function merciSto(){
   const cut=Date.now()-48*3600e3;
   return ldS().filter(s=>s.tp==='Merci'&&new Date(s.ts).getTime()>cut)
-    .map((s,i)=>{const sec=secTo(s.ora);return{n:'Mci-'+i,dir:s.dir||'?',tp:'Merci',oraPL:s.ora,sec,min:Math.floor(sec/60),rit:0,bD:aM(s.ora,-2),bU:aM(s.ora,1),note:'segnalato'};})
+    .map((s,i)=>{const sec=secTo(s.ora);return{n:'Mci-'+i,dir:s.dir||'?',tp:'Merci',oraPL:s.ora,sec,min:Math.floor(sec/60),rit:0,bD:aM(s.ora,-3),bU:aM(s.ora,1),note:'segnalato'};})
     .filter(t=>t.sec>=-180&&t.sec<=10800);
 }
 
@@ -468,13 +468,13 @@ function buildTreni(){
     const sec=secTo(oraPL,rit);
     if(sec>=-180&&sec<=10800){
       lista.push({n:t.n,dir:t.dir,tp:'SFM2',oraPL,sec,min:Math.floor(sec/60),rit,
-        bD:aM(oraPL,-2+rit),bU:aM(oraPL,1+rit),note:null});
+        bD:aM(oraPL,-3+rit),bU:aM(oraPL,1+rit),note:null});
     }
   });
 
   // Merci standard + segnalazioni
   [{n:'MCi-A',dir:'Chivasso',o:'02:20'},{n:'MCi-B',dir:'Pinerolo',o:'03:44'},{n:'MCi-C',dir:'Chivasso',o:'23:50'}]
-    .forEach(t=>{const sec=secTo(t.o);if(sec>=-180&&sec<=10800)lista.push({n:t.n,dir:t.dir,tp:'Merci',oraPL:t.o,sec,min:Math.floor(sec/60),rit:0,bD:aM(t.o,-2),bU:aM(t.o,1),note:'indicativo'});});
+    .forEach(t=>{const sec=secTo(t.o);if(sec>=-180&&sec<=10800)lista.push({n:t.n,dir:t.dir,tp:'Merci',oraPL:t.o,sec,min:Math.floor(sec/60),rit:0,bD:aM(t.o,-3),bU:aM(t.o,1),note:'indicativo'});});
 
   return[...lista,...merciSto()].sort((a,b)=>a.sec-b.sec);
 }
@@ -512,26 +512,28 @@ function initMappa(){
 // Tempi VERIFICATI da e656.net treno 26200 (Pinerolo→Chivasso)
 // Candiolo 05:42, PL Vinovo 05:44 = ref
 const TEMPI_DA_PL = {
+  // Tempi VERIFICATI da schermata ViaggiaTreno treno 26264 (Chivasso→None)
+  // PL Vinovo = 12:11 (Nichelino 12:09 +2min)
   Chivasso: [
-    // Treno viene da Pinerolo verso Torino/Chivasso
-    // dalla stazione più vicina al PL alla più lontana
-    {idx:8,  sec:120},   // Candiolo:         05:42 → PL 05:44 = 2 min
-    {idx:5,  sec:420},   // None:             05:37 → PL 05:44 = 7 min
-    {idx:3,  sec:660},   // Airasca:          05:33 → PL 05:44 = 11 min
-    {idx:0,  sec:1620},  // Pinerolo:         05:17 → PL 05:44 = 27 min
+    // Treno viene da Pinerolo verso Chivasso
+    // Tempi da treno 26200: Candiolo 05:42 → PL 05:44
+    {idx:8,  sec:120},   // Candiolo:     +2 min
+    {idx:5,  sec:420},   // None:         +7 min
+    {idx:3,  sec:660},   // Airasca:      +11 min
+    {idx:0,  sec:1620},  // Pinerolo:     +27 min
   ],
   Pinerolo: [
     // Treno viene da Chivasso verso Pinerolo
-    // dalla stazione più vicina al PL alla più lontana
-    {idx:15, sec:120},   // Nichelino:        05:47 → PL 05:44 = 3 min (usiamo 2)
-    {idx:18, sec:420},   // Moncalieri:       05:51 → PL 05:44 = 7 min
-    {idx:19, sec:840},   // Lingotto:         05:58 → PL 05:44 = 14 min
-    {idx:22, sec:1260},  // Porta Susa:       06:05 → PL 05:44 = 21 min
-    {idx:23, sec:1500},  // Rebaudengo:       06:09 → PL 05:44 = 25 min
-    {idx:24, sec:1740},  // Torino Stura:     06:13 → PL 05:44 = 29 min
-    {idx:25, sec:2160},  // Settimo:          06:20 → PL 05:44 = 36 min
-    {idx:26, sec:2520},  // Brandizzo:        06:26 → PL 05:44 = 42 min
-    {idx:27, sec:2820},  // Chivasso:         06:31 → PL 05:44 = 47 min
+    // VERIFICATI da treno 26264: PL 12:11
+    {idx:15, sec:120},   // Nichelino:    12:09 → PL 12:11 = 2 min
+    {idx:18, sec:300},   // Moncalieri:   12:06 → PL 12:11 = 5 min
+    {idx:19, sec:600},   // Lingotto:     12:01 → PL 12:11 = 10 min
+    {idx:22, sec:1020},  // Porta Susa:   11:54 → PL 12:11 = 17 min
+    {idx:23, sec:1320},  // Rebaudengo:   11:49 → PL 12:11 = 22 min
+    {idx:24, sec:1620},  // Stura:        11:44 → PL 12:11 = 27 min
+    {idx:25, sec:1980},  // Settimo:      11:38 → PL 12:11 = 33 min
+    {idx:26, sec:2280},  // Brandizzo:    11:33 → PL 12:11 = 38 min
+    {idx:27, sec:2640},  // Chivasso:     11:27 → PL 12:11 = 44 min
   ],
 };
 
@@ -602,13 +604,28 @@ function rStato(tr){
   // Prendo il primo treno che deve ancora passare (o è appena passato da meno di 60s)
   const tutti=tr.filter(apF);
   const pr=tutti.find(t=>t.sec>=-60)||tutti[0];
-  const ch=pr&&pr.sec<=120&&pr.sec>=-60,ia=pr&&pr.sec<=480&&!ch;
+  const ch=pr&&pr.sec<=240&&pr.sec>=-60,ia=pr&&pr.sec<=540&&!ch;
   let col,lbl;
-  if(LAV.blocca){col='#C8321A';lbl='Nessun treno — Lavori fase 2 (fino al 26 lug)';}
-  else if(ch){col='#C8321A';lbl=`Barriere chiuse · Riapertura ~${pr.bU}`;}
-  else if(ia){col='#C07010';lbl=`In arrivo tra ${pr.min} min · Chiusura ~${pr.bD}`;}
-  else if(pr){col='#1A7A3A';lbl=`Aperto · Prossimo tra ${pr.min} min (${pr.oraPL})`;}
-  else{col='#1A7A3A';lbl='Aperto · Nessun treno nelle prossime 3h';}
+  const ritStr = pr&&pr.rit>0 ? ` (+${pr.rit}′ ritardo)` : '';
+  if(LAV.blocca){
+    col='#C8321A';lbl='Nessun treno — Lavori fase 2 (fino al 26 lug)';
+  } else if(ch){
+    col='#C8321A';
+    lbl=`Barriere chiuse · Riapertura ~${pr.bU}${ritStr}`;
+  } else if(ia){
+    col='#C07010';
+    // Calcola esattamente quando scendono le barriere in secondi
+    const secChiusura = pr.sec - 180; // 3 min prima del transito
+    const minChiusura = Math.ceil(secChiusura/60);
+    lbl = minChiusura <= 0
+      ? `Barriere in chiusura · Transito ~${pr.oraPL}${ritStr}`
+      : `In arrivo tra ${pr.min} min · Sbarre tra ${minChiusura} min (~${pr.bD})${ritStr}`;
+  } else if(pr){
+    col='#1A7A3A';
+    lbl=`Aperto · Prossimo tra ${pr.min} min (${pr.oraPL})${ritStr}`;
+  } else {
+    col='#1A7A3A';lbl='Aperto · Nessun treno nelle prossime 3h';
+  }
   document.getElementById('sdot').style.background=col;
   document.getElementById('sdot').classList.toggle('pu',ch);
   document.getElementById('stxt').style.color=col;
