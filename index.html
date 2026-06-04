@@ -358,7 +358,7 @@ const ORARI_FISSI = [
 /* ═══════════════════════════════════════════════
    FERROVIA E MAPPA
 ═══════════════════════════════════════════════ */
-const PL_COORDS = [44.9480, 7.6320];
+const PL_COORDS = [44.975052, 7.616224]; // Coordinate reali da Google Maps
 const FERROVIA = [
   [44.8875,7.3292],                          // Pinerolo
   [44.8980,7.3680],[44.9040,7.4020],
@@ -366,9 +366,9 @@ const FERROVIA = [
   [44.9210,7.4940],[44.9310,7.5290],         // None
   [44.9410,7.5510],[44.9520,7.5760],
   [44.9611,7.5990],                          // Candiolo
-  [44.9660,7.6100],[44.9700,7.6180],
-  [44.9480,7.6320],                          // PL Vinovo ← idx=11
-  [44.9760,7.6260],[44.9820,7.6320],[44.9860,7.6370],
+  [44.9660,7.6060],[44.9710,7.6110],
+  [44.975052,7.616224],                      // PL Vinovo ← idx=11 (coordinate reali)
+  [44.9790,7.6230],[44.9850,7.6320],[44.9880,7.6370],
   [44.9914,7.6422],                          // Nichelino
   [44.9990,7.6520],[45.0080,7.6590],[45.0180,7.6640],
   [45.0298,7.6680],                          // Lingotto
@@ -443,7 +443,7 @@ function calPat(s){
    2. Fallback: orari fissi RFI (validi fino al 13 giu 2026)
    3. Se orario scaduto e live non disponibile: mostra avviso
 ═══════════════════════════════════════════════ */
-let RITARDI={};
+let RITARDI={}; // {numeroTreno: minutiRitardo}
 let ORARI_LIVE={}; // {numero: oraPL} da ViaggiaTreno
 let liveDisponibile=false;
 let filtro='tutti', curTab='mon';
@@ -724,9 +724,14 @@ async function fetchVT(){
     if(!r.ok) throw new Error('HTTP ' + r.status);
     const d = await r.json();
 
-    // Aggiorna ritardi
-    if(d.ritardi){
-      Object.assign(RITARDI, d.ritardi);
+    // Aggiorna ritardi — sostituisci completamente (non merge)
+    // così i ritardi azzerati vengono rimossi
+    if(d.ritardi && Object.keys(d.ritardi).length > 0){
+      // Mantieni solo ritardi > 0, rimuovi quelli azzerati
+      RITARDI = {};
+      Object.entries(d.ritardi).forEach(([k,v]) => {
+        if(v > 0) RITARDI[k] = v;
+      });
     }
 
     // Aggiorna orari live se il server li ha ottenuti da ViaggiaTreno
@@ -739,12 +744,13 @@ async function fetchVT(){
 
     const li = document.getElementById('live');
     const fonte = d.fonte || '';
+    const nRit = Object.keys(RITARDI).length;
     if(fonte.includes('live')){
-      li.textContent = ' ● live';
+      li.textContent = nRit > 0 ? ` ● live +${nRit}rit` : ' ● live';
       li.className = 'lon';
     } else {
-      li.textContent = ' ● RFI';
-      li.className = 'lon'; // RFI fissi è comunque affidabile
+      li.textContent = nRit > 0 ? ` ● RFI +${nRit}rit` : ' ● RFI';
+      li.className = 'lon';
     }
     rOrarioAvviso();
   } catch(err){
