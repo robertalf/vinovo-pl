@@ -394,6 +394,7 @@ const STAZ=[
   {l:'None',       lat:44.9310,lon:7.5290},
   {l:'Candiolo',   lat:44.9611,lon:7.5990},
   {l:'Nichelino',  lat:44.9914,lon:7.6422},
+  {l:'Moncalieri', lat:45.0080,lon:7.6590},
   {l:'Lingotto',   lat:45.0298,lon:7.6680},
   {l:'P. Susa',    lat:45.0709,lon:7.6658},
   {l:'Rebaudengo', lat:45.1010,lon:7.6430},
@@ -504,20 +505,86 @@ function initMappa(){
     .addTo(map).bindPopup('<b>P.L. Vinovo</b><br>SP143 · KM 5+806<br>SFM2 Torino–Pinerolo');
 }
 
+// Tempi reali di percorrenza in secondi dal PL Vinovo verso ogni stazione
+// Misurati da ViaggiaTreno (orari ufficiali SFM2)
+// Direzione Chivasso: secondi PRIMA del PL (treno si avvicina da Pinerolo)
+// Direzione Pinerolo: secondi PRIMA del PL (treno si avvicina da Chivasso)
+// Tempi VERIFICATI da e656.net treno 26200 (Pinerolo→Chivasso)
+// Candiolo 05:42, PL Vinovo 05:44 = ref
+const TEMPI_DA_PL = {
+  Chivasso: [
+    // Treno viene da Pinerolo verso Torino/Chivasso
+    // dalla stazione più vicina al PL alla più lontana
+    {idx:8,  sec:120},   // Candiolo:         05:42 → PL 05:44 = 2 min
+    {idx:5,  sec:420},   // None:             05:37 → PL 05:44 = 7 min
+    {idx:3,  sec:660},   // Airasca:          05:33 → PL 05:44 = 11 min
+    {idx:0,  sec:1620},  // Pinerolo:         05:17 → PL 05:44 = 27 min
+  ],
+  Pinerolo: [
+    // Treno viene da Chivasso verso Pinerolo
+    // dalla stazione più vicina al PL alla più lontana
+    {idx:15, sec:120},   // Nichelino:        05:47 → PL 05:44 = 3 min (usiamo 2)
+    {idx:18, sec:420},   // Moncalieri:       05:51 → PL 05:44 = 7 min
+    {idx:19, sec:840},   // Lingotto:         05:58 → PL 05:44 = 14 min
+    {idx:22, sec:1260},  // Porta Susa:       06:05 → PL 05:44 = 21 min
+    {idx:23, sec:1500},  // Rebaudengo:       06:09 → PL 05:44 = 25 min
+    {idx:24, sec:1740},  // Torino Stura:     06:13 → PL 05:44 = 29 min
+    {idx:25, sec:2160},  // Settimo:          06:20 → PL 05:44 = 36 min
+    {idx:26, sec:2520},  // Brandizzo:        06:26 → PL 05:44 = 42 min
+    {idx:27, sec:2820},  // Chivasso:         06:31 → PL 05:44 = 47 min
+  ],
+};
+
 function trainGPS(t){
-  const sec=t.sec;
-  if(sec>5400||sec<-600)return null;
-  const fracPL=IDX_PL/N_SEG;
-  let frac;
-  if(t.dir==='Chivasso'){
-    frac=sec>=0?fracPL*(1-Math.min(sec,5400)/5400):fracPL+(Math.min(-sec,600)/600)*(1-fracPL)*0.5;
-  }else{
-    frac=sec>=0?fracPL+(1-fracPL)*Math.min(sec,5400)/5400:fracPL-fracPL*(Math.min(-sec,600)/600)*0.5;
+  const sec = t.sec;
+  // Mostra il treno da 40 min prima a 5 min dopo il PL
+  if(sec > 2400 || sec < -300) return null;
+
+  const tappe = TEMPI_DA_PL[t.dir];
+  if(!tappe) return null;
+
+  // Trova tra quali due stazioni si trova il treno in base ai secondi mancanti
+  const plIdx = IDX_PL;
+
+  if(sec <= 0){
+    // Treno già passato — si allontana dal PL
+    const fraz = Math.min(-sec/300, 0.99);
+    if(t.dir==='Chivasso'){
+      // Si allontana verso Nichelino (idx 15)
+      const idxA=plIdx, idxB=15;
+      const lat = FERROVIA[idxA][0]+(FERROVIA[idxB][0]-FERROVIA[idxA][0])*fraz;
+      const lon = FERROVIA[idxA][1]+(FERROVIA[idxB][1]-FERROVIA[idxA][1])*fraz;
+      return [lat, lon];
+    } else {
+      // Si allontana verso Candiolo (idx 8)
+      const idxA=plIdx, idxB=8;
+      const lat = FERROVIA[idxA][0]+(FERROVIA[idxB][0]-FERROVIA[idxA][0])*fraz;
+      const lon = FERROVIA[idxA][1]+(FERROVIA[idxB][1]-FERROVIA[idxA][1])*fraz;
+      return [lat, lon];
+    }
   }
-  frac=Math.max(0.01,Math.min(0.99,frac));
-  const idx=Math.min(Math.floor(frac*N_SEG),N_SEG-1),tf=frac*N_SEG-idx;
-  const p1=FERROVIA[idx],p2=FERROVIA[idx+1];
-  return[p1[0]+(p2[0]-p1[0])*tf,p1[1]+(p2[1]-p1[1])*tf];
+
+  // Treno in avvicinamento — trova il segmento corretto
+  // tappe è ordinata dalla più vicina alla più lontana
+  for(let i=0; i<tappe.length-1; i++){
+    const tappaVicina  = tappe[i];
+    const tappaLontana = tappe[i+1];
+    if(sec >= tappaVicina.sec && sec <= tappaLontana.sec){
+      // Interpola tra le due tappe
+      const fraz = (sec - tappaVicina.sec) / (tappaLontana.sec - tappaVicina.sec);
+      // Dir Chivasso: viene da sinistra (Pinerolo), indici decrescenti verso PL
+      // Dir Pinerolo: viene da destra (Chivasso), indici crescenti verso PL
+      const idxA = tappaVicina.idx;
+      const idxB = tappaLontana.idx;
+      const lat = FERROVIA[idxA][0]+(FERROVIA[idxB][0]-FERROVIA[idxA][0])*fraz;
+      const lon = FERROVIA[idxA][1]+(FERROVIA[idxB][1]-FERROVIA[idxA][1])*fraz;
+      return [lat, lon];
+    }
+  }
+
+  // Oltre l'ultima tappa — usa l'estremo della linea
+  const ultima = tappe[tappe.length-1];
+  return FERROVIA[ultima.idx];
 }
 
 /* ═══════════════════════════════════════════════
