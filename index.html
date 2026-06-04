@@ -361,13 +361,14 @@ const ORARI_FISSI = [
 const PL_COORDS = [44.975052, 7.616224]; // Coordinate reali da Google Maps
 const FERROVIA = [
   [44.8875,7.3292],                          // Pinerolo
-  [44.8980,7.3680],[44.9040,7.4020],
-  [44.9130,7.4660],                          // Airasca
+  [44.8932,7.3480],                          // Pinerolo Olimpica (idx=1)
+  [44.9000,7.3820],                          // Piscina di Pinerolo (idx=2)
+  [44.9130,7.4660],                          // Airasca (idx=3)
   [44.9210,7.4940],[44.9310,7.5290],         // None
   [44.9410,7.5510],[44.9520,7.5760],
   [44.9611,7.5990],                          // Candiolo
   [44.9660,7.6060],[44.9710,7.6110],
-  [44.975052,7.616224],                      // PL Vinovo ← idx=11 (coordinate reali)
+  [44.975052,7.616224],                      // PL Vinovo ← idx=13 (coordinate reali)
   [44.9790,7.6230],[44.9850,7.6320],[44.9880,7.6370],
   [44.9914,7.6422],                          // Nichelino
   [44.9990,7.6520],[45.0080,7.6590],[45.0180,7.6640],
@@ -387,9 +388,11 @@ const FERROVIA = [
   [45.3700,7.7620],[45.3900,7.7700],
   [45.4280,7.8820],                          // Chivasso
 ];
-const IDX_PL=11, N_SEG=FERROVIA.length-1;
+const IDX_PL=13, N_SEG=FERROVIA.length-1; // +2 per Pinerolo Olimpica e Piscina
 const STAZ=[
   {l:'Pinerolo',   lat:44.8875,lon:7.3292},
+  {l:'Pin. Olimpica',lat:44.8932,lon:7.3480},
+  {l:'Piscina Pin.',lat:44.9000,lon:7.3820},
   {l:'Airasca',    lat:44.9130,lon:7.4660},
   {l:'None',       lat:44.9310,lon:7.5290},
   {l:'Candiolo',   lat:44.9611,lon:7.5990},
@@ -459,12 +462,16 @@ function buildTreni(){
   if(LAV.blocca)return[];
   const fest=isFest();
   const lista=[];
+  // Fase 1 lavori (9 mag-14 giu): treni dir Pinerolo posticipati di 4 min
+  const offsetFase1Pin = (LAV.fase===1) ? 4 : 0;
 
   ORARI_FISSI.forEach(t=>{
     // Tutti i treni circolano ogni giorno - nessun filtro festivo
     const rit=RITARDI[t.n]||0;
     // Usa orario live se disponibile, altrimenti fisso
-    const oraPL=ORARI_LIVE[t.n]||aM(t.ref,2);
+    // Per dir Pinerolo in fase 1 lavori, aggiungi 4 min all'orario
+    const offsetPin = (t.dir==='Pinerolo') ? offsetFase1Pin : 0;
+    const oraPL=ORARI_LIVE[t.n]||aM(t.ref, 2+offsetPin);
     const sec=secTo(oraPL,rit);
     if(sec>=-180&&sec<=10800){
       lista.push({n:t.n,dir:t.dir,tp:'SFM2',oraPL,sec,min:Math.floor(sec/60),rit,
@@ -512,28 +519,28 @@ function initMappa(){
 // Tempi VERIFICATI da e656.net treno 26200 (Pinerolo→Chivasso)
 // Candiolo 05:42, PL Vinovo 05:44 = ref
 const TEMPI_DA_PL = {
-  // Tempi VERIFICATI da schermata ViaggiaTreno treno 26264 (Chivasso→None)
-  // PL Vinovo = 12:11 (Nichelino 12:09 +2min)
+  // ══ VERIFICATI da e656.net ══
+  // Treno 26200 (Pinerolo→Chivasso): PL = Candiolo 05:42 +2min = 05:44
+  // Treno 26252 (Chivasso→Pinerolo): PL = Nichelino 06:03 +2min = 06:05
   Chivasso: [
-    // Treno viene da Pinerolo verso Chivasso
-    // Tempi da treno 26200: Candiolo 05:42 → PL 05:44
-    {idx:8,  sec:120},   // Candiolo:     +2 min
-    {idx:5,  sec:420},   // None:         +7 min
-    {idx:3,  sec:660},   // Airasca:      +11 min
-    {idx:0,  sec:1620},  // Pinerolo:     +27 min
+    // idx in FERROVIA, secondi prima del PL
+    {idx:10, sec:120},   // Candiolo:          05:42 → PL 05:44 =  2 min
+    {idx:7,  sec:420},   // None:              05:37 → PL 05:44 =  7 min
+    {idx:3,  sec:660},   // Airasca:           05:33 → PL 05:44 = 11 min
+    {idx:2,  sec:960},   // Piscina Pinerolo:  05:28 → PL 05:44 = 16 min
+    {idx:1,  sec:1440},  // Pinerolo Olimpica: 05:20 → PL 05:44 = 24 min
+    {idx:0,  sec:1620},  // Pinerolo:          05:17 → PL 05:44 = 27 min
   ],
   Pinerolo: [
-    // Treno viene da Chivasso verso Pinerolo
-    // VERIFICATI da treno 26264: PL 12:11
-    {idx:15, sec:120},   // Nichelino:    12:09 → PL 12:11 = 2 min
-    {idx:18, sec:300},   // Moncalieri:   12:06 → PL 12:11 = 5 min
-    {idx:19, sec:600},   // Lingotto:     12:01 → PL 12:11 = 10 min
-    {idx:22, sec:1020},  // Porta Susa:   11:54 → PL 12:11 = 17 min
-    {idx:23, sec:1320},  // Rebaudengo:   11:49 → PL 12:11 = 22 min
-    {idx:24, sec:1620},  // Stura:        11:44 → PL 12:11 = 27 min
-    {idx:25, sec:1980},  // Settimo:      11:38 → PL 12:11 = 33 min
-    {idx:26, sec:2280},  // Brandizzo:    11:33 → PL 12:11 = 38 min
-    {idx:27, sec:2640},  // Chivasso:     11:27 → PL 12:11 = 44 min
+    {idx:17, sec:120},   // Nichelino:         06:03 → PL 06:05 =  2 min
+    {idx:20, sec:420},   // Moncalieri:        05:58 → PL 06:05 =  7 min
+    {idx:21, sec:720},   // Lingotto:          05:53 → PL 06:05 = 12 min
+    {idx:24, sec:1500},  // Porta Susa:        05:40 → PL 06:05 = 25 min
+    {idx:25, sec:1740},  // Rebaudengo:        05:36 → PL 06:05 = 29 min
+    {idx:26, sec:1980},  // Stura:             05:32 → PL 06:05 = 33 min
+    {idx:27, sec:2340},  // Settimo:           05:26 → PL 06:05 = 39 min
+    {idx:28, sec:2700},  // Brandizzo:         05:20 → PL 06:05 = 45 min
+    {idx:29, sec:3000},  // Chivasso:          05:15 → PL 06:05 = 50 min
   ],
 };
 
