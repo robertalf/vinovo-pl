@@ -118,6 +118,7 @@ html,body{width:100%;height:100%;background:var(--bg);overflow:hidden;font-famil
 /* marker treni */
 .tm{background:var(--blu);color:white;font-family:'DM Mono',monospace;font-size:8px;font-weight:700;text-align:center;line-height:19px;border-radius:5px;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,.2);white-space:nowrap;padding:0 6px;}
 .tm.mc{background:var(--mer);}
+.tm.ia{background:var(--amb);}
 .tm.ur{background:var(--red);}
 
 /* ── FILTRI ── */
@@ -668,7 +669,13 @@ function rMappa(tr){
   tMks.forEach(m=>map.removeLayer(m));tMks=[];
   tr.forEach(t=>{
     const pos=trainGPS(t);if(!pos)return;
-    let cls='tm';if(t.tp==='Merci')cls+=' mc';else if(t.sec<=240)cls+=' ur';
+    const isMerci=t.tp==='Merci';
+    const isUrgente=!isMerci&&t.sec<=240;
+    const isInArrivo=!isMerci&&!isUrgente&&t.sec<=480;
+    let cls='tm';
+    if(isMerci)   cls+=' mc';
+    else if(isUrgente)  cls+=' ur';
+    else if(isInArrivo) cls+=' ia';
     const ar=t.dir==='Chivasso'?'▶':'◀';
     const ico=L.divIcon({html:`<div>${ar} ${t.n}</div>`,className:cls,iconSize:[60,19],iconAnchor:[30,9]});
     const m=L.marker(pos,{icon:ico,zIndexOffset:500}).addTo(map);
