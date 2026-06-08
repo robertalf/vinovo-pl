@@ -747,50 +747,55 @@ function flash(msg){const f=document.getElementById('flash');f.textContent=msg;f
    SERVER RENDER — interroga ogni 30s il server che
    a sua volta aggiorna orari e ritardi da ViaggiaTreno
 ═══════════════════════════════════════════════ */
-const SERVER_URL = 'https://vinovo-server.onrender.com';
+// Proxy multipli — prova in sequenza finché uno funziona
+const PROXIES = [
+  url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+  url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+  url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+];
 
 async function fetchVT(){
-  try{
-    const r = await fetch(SERVER_URL + '/orari', {signal: AbortSignal.timeout(12000)});
-    if(!r.ok) throw new Error('HTTP ' + r.status);
-    const d = await r.json();
+  const now = new Date();
+  const ts = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+
+    String(now.getDate()).padStart(2,'0')+'T'+
+    String(now.getHours()).padStart(2,'0')+':'+
+    String(now.getMinutes()).padStart(2,'0')+':00';
 
-    // Aggiorna ritardi — sostituisci completamente (non merge)
-    // così i ritardi azzerati vengono rimossi
-    if(d.ritardi && Object.keys(d.ritardi).length > 0){
-      // Mantieni solo ritardi > 0, rimuovi quelli azzerati
-      RITARDI = {};
-      Object.entries(d.ritardi).forEach(([k,v]) => {
-        if(v > 0) RITARDI[k] = v;
+  // Prova ogni proxy in sequenza
+  for(const proxy of PROXIES){
+    try{
+      const vtUrl = 'https://www.viaggiatreno.it/infomobilita/resteasy/viaggiatreno/partenze/S04203/'+encodeURIComponent(ts);
+      const r = await fetch(proxy(vtUrl), {signal: AbortSignal.timeout(8000)});
+      if(!r.ok) continue;
+      const text = await r.text();
+      if(!text.trim().startsWith('[')) continue;
+      const data = JSON.parse(text);
+      if(!Array.isArray(data) || data.length === 0) continue;
+
+      // Aggiorna ritardi
+      const nuovi = {};
+      data.forEach(t => {
+        if(t.numeroTreno != null && t.ritardo != null && t.ritardo > 0)
+          nuovi[String(t.numeroTreno)] = t.ritardo;
       });
-    }
+      RITARDI = nuovi;
 
-    // Aggiorna orari live se il server li ha ottenuti da ViaggiaTreno
-    if(d.orari && d.orari.length >= 10){
-      d.orari.forEach(t => {
-        if(t.oraPL) ORARI_LIVE[t.n] = t.oraPL;
-      });
-      liveDisponibile = true;
-    }
-
-    const li = document.getElementById('live');
-    const fonte = d.fonte || '';
-    const nRit = Object.keys(RITARDI).length;
-    if(fonte.includes('live')){
+      const li = document.getElementById('live');
+      const nRit = Object.keys(RITARDI).length;
       li.textContent = nRit > 0 ? ` ● live +${nRit}rit` : ' ● live';
       li.className = 'lon';
-    } else {
-      li.textContent = nRit > 0 ? ` ● RFI +${nRit}rit` : ' ● RFI';
-      li.className = 'lon';
-    }
-    rOrarioAvviso();
-  } catch(err){
-    liveDisponibile = false;
-    const li = document.getElementById('live');
-    li.textContent = ' ● stimato';
-    li.className = 'lof';
-    rOrarioAvviso();
+      liveDisponibile = true;
+      rOrarioAvviso();
+      return; // successo — esci
+    } catch(e){ continue; }
   }
+
+  // Tutti i proxy falliti
+  liveDisponibile = false;
+  const li = document.getElementById('live');
+  li.textContent = ' ● RFI';
+  li.className = 'lof';
+  rOrarioAvviso();
 }
 
 /* ═══════════════════════════════════════════════
@@ -820,19 +825,12 @@ document.getElementById('sgora').value=String(_n.getHours()).padStart(2,'0')+':'
 rBanner();rOrarioAvviso();
 setInterval(tick,1000);
 
-// ── Keepalive: sveglia il server Render ogni 8 minuti
-// Il piano free si addormenta dopo 15min — così rimane sempre sveglio
-async function keepAlive(){
-  try{
-    await fetch(SERVER_URL+'/health',{signal:AbortSignal.timeout(5000)});
-  }catch{}
-}
+// Keepalive non necessario — nessun server esterno
 
 // avvio con splash — aspetta Leaflet prima di tutto
 loadLeaflet(function(){
   initMappa();
-  // Sveglia subito il server prima ancora dello splash
-  keepAlive();
+
   setTimeout(()=>{if(map)map.invalidateSize();tick();},200);
   fetchVT().then(()=>{
     clearInterval(siv);sfill.style.width='100%';
@@ -843,8 +841,7 @@ loadLeaflet(function(){
   });
   // Aggiorna ritardi ogni 20 secondi (era 45s)
   setInterval(fetchVT, 20000);
-  // Keepalive ogni 8 minuti
-  setInterval(keepAlive, 8 * 60 * 1000);
+
 });
 </script>
 </body>
