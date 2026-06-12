@@ -305,8 +305,9 @@ html,body{width:100%;height:100%;background:var(--bg);overflow:hidden;font-famil
 const ORARIO_INVERNALE_SCADE = new Date('2026-06-14');
 
 const ORARI_FISSI = [
-  // FER6=lun-sab · G=tutti i giorni · FEST=solo domenica
-  // Dir CHIVASSO — ref=orario Candiolo, PL=ref+2min
+  // ══ ORARI UFFICIALI PDF sfmtorino.it (14 dic 2025 – 13 giu 2026) ══
+  // Dir CHIVASSO — ref = partenza da Candiolo, PL = ref+2min
+  // G=tutti i giorni, FER6=lun-sab, FEST=solo domenica
   {n:'26200',dir:'Chivasso',ref:'05:42',per:'FER6'},
   {n:'26204',dir:'Chivasso',ref:'06:42',per:'FER6'},
   {n:'26302',dir:'Chivasso',ref:'07:15',per:'FER6'},
@@ -330,7 +331,7 @@ const ORARI_FISSI = [
   {n:'26230',dir:'Chivasso',ref:'19:42',per:'G'},
   {n:'26232',dir:'Chivasso',ref:'20:42',per:'FER6'},
   {n:'26234',dir:'Chivasso',ref:'21:42',per:'G'},
-  // Dir PINEROLO — ref=orario Nichelino, PL=ref+2min
+  // Dir PINEROLO — ref = passaggio a Nichelino, PL = ref+2min
   {n:'26252',dir:'Pinerolo',ref:'06:03',per:'FER6'},
   {n:'26320',dir:'Pinerolo',ref:'06:34',per:'FER6'},
   {n:'26254',dir:'Pinerolo',ref:'07:09',per:'FER6'},
@@ -467,7 +468,8 @@ function buildTreni(){
   const offsetFase1Pin = (LAV.fase===1) ? 4 : 0;
 
   ORARI_FISSI.forEach(t=>{
-    // Tutti i treni circolano ogni giorno - nessun filtro festivo
+    if(fest && t.per==='FER6') return;  // FER6: non circola la domenica
+    if(!fest && t.per==='FEST') return; // FEST: circola solo la domenica
     const rit=RITARDI[t.n]||0;
     // Usa orario live se disponibile, altrimenti fisso
     // Per dir Pinerolo in fase 1 lavori, aggiungi 4 min all'orario
@@ -747,54 +749,71 @@ function flash(msg){const f=document.getElementById('flash');f.textContent=msg;f
    SERVER RENDER — interroga ogni 30s il server che
    a sua volta aggiorna orari e ritardi da ViaggiaTreno
 ═══════════════════════════════════════════════ */
-// Proxy multipli — prova in sequenza finché uno funziona
-const PROXIES = [
-  url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-  url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
-  url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
-];
+// Server Railway — sempre attivo, nessun sleep
+const SERVER_URL = 'https://vinovo-server-production.up.railway.app';
 
 async function fetchVT(){
+  try{
+    const r = await fetch(SERVER_URL + '/orari', {signal: AbortSignal.timeout(10000)});
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    const d = await r.json();
+
+    // Aggiorna ritardi
+    if(d.ritardi){
+      RITARDI = {};
+      Object.entries(d.ritardi).forEach(([k,v]) => {
+        if(v > 0) RITARDI[k] = v;
+      });
+    }
+
+    const li = document.getElementById('live');
+    const nRit = Object.keys(RITARDI).length;
+    const fonte = d.fonte || '';
+    if(fonte.includes('live')){
+      li.textContent = nRit > 0 ? ` ● live +${nRit}rit` : ' ● live';
+      li.className = 'lon';
+    } else {
+      li.textContent = ' ● RFI';
+      li.className = 'lon';
+    }
+    liveDisponibile = fonte.includes('live');
+    rOrarioAvviso();
+  } catch(err){
+    // Fallback: prova proxy diretti
+    await fetchVTFallback();
+  }
+}
+
+// Fallback con proxy se Railway non risponde
+async function fetchVTFallback(){
   const now = new Date();
   const ts = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+
     String(now.getDate()).padStart(2,'0')+'T'+
     String(now.getHours()).padStart(2,'0')+':'+
     String(now.getMinutes()).padStart(2,'0')+':00';
-
-  // Prova ogni proxy in sequenza
-  for(const proxy of PROXIES){
+  const vtUrl = 'https://www.viaggiatreno.it/infomobilita/resteasy/viaggiatreno/partenze/S04203/'+encodeURIComponent(ts);
+  const proxies = [
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(vtUrl)}`,
+    `https://corsproxy.io/?${encodeURIComponent(vtUrl)}`,
+  ];
+  for(const url of proxies){
     try{
-      const vtUrl = 'https://www.viaggiatreno.it/infomobilita/resteasy/viaggiatreno/partenze/S04203/'+encodeURIComponent(ts);
-      const r = await fetch(proxy(vtUrl), {signal: AbortSignal.timeout(8000)});
+      const r = await fetch(url, {signal: AbortSignal.timeout(8000)});
       if(!r.ok) continue;
       const text = await r.text();
       if(!text.trim().startsWith('[')) continue;
       const data = JSON.parse(text);
-      if(!Array.isArray(data) || data.length === 0) continue;
-
-      // Aggiorna ritardi
-      const nuovi = {};
-      data.forEach(t => {
-        if(t.numeroTreno != null && t.ritardo != null && t.ritardo > 0)
-          nuovi[String(t.numeroTreno)] = t.ritardo;
-      });
-      RITARDI = nuovi;
-
+      if(!Array.isArray(data)||data.length===0) continue;
+      RITARDI = {};
+      data.forEach(t => { if(t.numeroTreno!=null&&t.ritardo>0) RITARDI[String(t.numeroTreno)]=t.ritardo; });
       const li = document.getElementById('live');
-      const nRit = Object.keys(RITARDI).length;
-      li.textContent = nRit > 0 ? ` ● live +${nRit}rit` : ' ● live';
-      li.className = 'lon';
-      liveDisponibile = true;
-      rOrarioAvviso();
-      return; // successo — esci
+      li.textContent = ' ● live (proxy)'; li.className = 'lon';
+      liveDisponibile = true; rOrarioAvviso(); return;
     } catch(e){ continue; }
   }
-
-  // Tutti i proxy falliti
   liveDisponibile = false;
   const li = document.getElementById('live');
-  li.textContent = ' ● RFI';
-  li.className = 'lof';
+  li.textContent = ' ● RFI'; li.className = 'lof';
   rOrarioAvviso();
 }
 
