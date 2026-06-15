@@ -302,7 +302,7 @@ html,body{width:100%;height:100%;background:var(--bg);overflow:hidden;font-famil
    Fonte: prm.rfi.it stazione Candiolo id=796
    PL Vinovo = +2 min dalla stazione di riferimento
 ═══════════════════════════════════════════════ */
-const ORARIO_INVERNALE_SCADE = new Date('2026-06-14');
+const ORARIO_INVERNALE_SCADE = new Date('2026-06-14'); // Fase 2 inizia il 15 giu
 
 const ORARI_FISSI = [
   // ══ ORARI UFFICIALI PDF sfmtorino.it (14 dic 2025 – 13 giu 2026) ══
@@ -422,10 +422,13 @@ function orarioScaduto(){return new Date()>ORARIO_INVERNALE_SCADE;}
 ═══════════════════════════════════════════════ */
 function getLav(){
   const d=new Date();
+  // FASE 2 (15 giu - 26 lug 2026): bus sostitutivi Torino Lingotto<->Pinerolo
+  // I treni Chivasso<->Torino Lingotto passano REGOLARMENTE dal PL di Vinovo
   if(d>=new Date('2026-06-15')&&d<=new Date('2026-07-26'))
-    return{f:2,blocca:true,msg:'⚠ Fase 2 lavori (15 giu–26 lug 2026): nessun treno al P.L. di Vinovo. Bus sostitutivi Pinerolo ↔ Torino Lingotto.',col:'#C8321A'};
+    return{f:2,blocca:false,msg:'⚠ Lavori (15 giu–26 lug 2026): bus sostitutivi Torino Lingotto↔Pinerolo. Treni Chivasso↔Torino Lingotto regolari — Vinovo servita normalmente.',col:'#C07010'};
+  // FASE 1 (9 mag - 14 giu 2026): bus sostitutivi Pinerolo<->None
   if(d>=new Date('2026-05-09')&&d<=new Date('2026-06-14'))
-    return{f:1,blocca:false,msg:'⚠ Fase 1 lavori (9 mag–13 giu 2026): tratta Pinerolo–None interrotta. Treni da None regolari. Vinovo servita normalmente.',col:'#C07010'};
+    return{f:1,blocca:false,msg:'⚠ Lavori (9 mag–14 giu 2026): bus sostitutivi Pinerolo↔None. Treni da None regolari — Vinovo servita normalmente.',col:'#C07010'};
   return{f:0,blocca:false,msg:null,col:null};
 }
 const LAV=getLav();
@@ -464,8 +467,10 @@ function buildTreni(){
   if(LAV.blocca)return[];
   const fest=isFest();
   const lista=[];
-  // Fase 1 lavori (9 mag-14 giu): treni dir Pinerolo posticipati di 4 min
-  const offsetFase1Pin = (LAV.fase===1) ? 4 : 0;
+  // Offset lavori:
+  // Fase 1 (9 mag-14 giu): dir Pinerolo +4 min (arrivo None posticipato)
+  // Fase 2 (15 giu-26 lug): dir Pinerolo +5 min (arrivo Lingotto posticipato)
+  const offsetPin = LAV.fase===1 ? 4 : LAV.fase===2 ? 5 : 0;
 
   ORARI_FISSI.forEach(t=>{
     if(fest && t.per==='FER6') return;  // FER6: non circola la domenica
@@ -473,8 +478,8 @@ function buildTreni(){
     const rit=RITARDI[t.n]||0;
     // Usa orario live se disponibile, altrimenti fisso
     // Per dir Pinerolo in fase 1 lavori, aggiungi 4 min all'orario
-    const offsetPin = (t.dir==='Pinerolo') ? offsetFase1Pin : 0;
-    const oraPL=ORARI_LIVE[t.n]||aM(t.ref, 2+offsetPin);
+    const pinOffset = (t.dir==='Pinerolo') ? offsetPin : 0;
+    const oraPL=ORARI_LIVE[t.n]||aM(t.ref, 2+pinOffset);
     const sec=secTo(oraPL,rit);
     if(sec>=-180&&sec<=10800){
       lista.push({n:t.n,dir:t.dir,tp:'SFM2',oraPL,sec,min:Math.floor(sec/60),rit,
@@ -647,7 +652,7 @@ function rStato(tr){
 
 function rLista(tr){
   const fl=tr.filter(apF),el=document.getElementById('lst');
-  if(!fl.length){el.innerHTML=`<div class="empty">${LAV.blocca?'Nessun treno fino al 26 luglio 2026\n(Fase 2 lavori — bus sostitutivi)':'Nessun treno\nnelle prossime 3h'}</div>`;return;}
+  if(!fl.length){el.innerHTML=`<div class="empty">${LAV.blocca?'Nessun treno nelle prossime 3h':'Nessun treno\nnelle prossime 3h'}</div>`;return;}
   el.innerHTML=fl.map((t,i)=>{
     const c=cMin(t),p=i===0;
     return`<div class="tc${p?' p':''}" style="${p?'background:'+c+'08;':''}">
@@ -695,10 +700,13 @@ function rBanner(){
 
 function rOrarioAvviso(){
   const b=document.getElementById('bnr-orario');
-  if(!orarioScaduto()||liveDisponibile){b.style.display='none';return;}
+  // In fase 2 c'è già il banner lavori — non servono altri avvisi
+  if(!orarioScaduto()||LAV.fase===2){b.style.display='none';return;}
+  // Mostra solo se l'orario è scaduto e non abbiamo dati live
+  if(liveDisponibile){b.style.display='none';return;}
   b.style.display='block';
   document.getElementById('bnr-orario-txt').textContent=
-    '⚠ L\'orario invernale RFI è scaduto il 13 giu 2026. In attesa del nuovo orario estivo, i dati potrebbero non essere aggiornati. Aggiornamento automatico non appena disponibile.';
+    '⚠ Orario estivo in vigore dal 14 giu 2026. I ritardi vengono aggiornati automaticamente da ViaggiaTreno quando disponibili.';
 }
 
 function rStorico(){
@@ -770,8 +778,9 @@ async function fetchVT(){
   for(const staz of stazioni){
     const vtUrl = `https://www.viaggiatreno.it/infomobilita/resteasy/viaggiatreno/partenze/${staz}/${encodeURIComponent(ts)}`;
     const proxies = [
-      `https://api.allorigins.win/raw?url=${encodeURIComponent(vtUrl)}`,
       `https://corsproxy.io/?${encodeURIComponent(vtUrl)}`,
+      `https://api.allorigins.win/raw?url=${encodeURIComponent(vtUrl)}`,
+      `https://corsmirror.onrender.com/v1/cors?url=${encodeURIComponent(vtUrl)}`,
       `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(vtUrl)}`,
     ];
     for(const url of proxies){
