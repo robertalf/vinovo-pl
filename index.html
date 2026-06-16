@@ -422,11 +422,13 @@ function orarioScaduto(){return new Date()>ORARIO_INVERNALE_SCADE;}
 ═══════════════════════════════════════════════ */
 function getLav(){
   const d=new Date();
-  // FASE 2 (15 giu - 26 lug 2026): bus sostitutivi Torino Lingotto<->Pinerolo
-  // I treni Chivasso<->Torino Lingotto passano REGOLARMENTE dal PL di Vinovo
+  // FASE 2 (15 giu - 26 lug 2026): bus sostitutivi Pinerolo<->Torino Lingotto
+  // Il PL di Vinovo è tra Candiolo e Nichelino — DENTRO la tratta interrotta
+  // Nessun treno passa dal PL in questo periodo (confermato da RFI e 9 fonti)
   if(d>=new Date('2026-06-15')&&d<=new Date('2026-07-26'))
-    return{f:2,blocca:false,msg:'⚠ Lavori (15 giu–26 lug 2026): bus sostitutivi Torino Lingotto↔Pinerolo. Treni Chivasso↔Torino Lingotto regolari — Vinovo servita normalmente.',col:'#C07010'};
-  // FASE 1 (9 mag - 14 giu 2026): bus sostitutivi Pinerolo<->None
+    return{f:2,blocca:true,msg:'⚠ Lavori (15 giu–26 lug 2026): bus sostitutivi sulla tratta Pinerolo↔Torino Lingotto, che include il P.L. di Vinovo. Nessun treno passa dal passaggio a livello in questo periodo.',col:'#C8321A'};
+  // FASE 1 (9 mag - 14 giu 2026): bus sostitutivi solo Pinerolo<->None
+  // Vinovo è tra None e Torino — FUORI dalla tratta interrotta, treni regolari
   if(d>=new Date('2026-05-09')&&d<=new Date('2026-06-14'))
     return{f:1,blocca:false,msg:'⚠ Lavori (9 mag–14 giu 2026): bus sostitutivi Pinerolo↔None. Treni da None regolari — Vinovo servita normalmente.',col:'#C07010'};
   return{f:0,blocca:false,msg:null,col:null};
