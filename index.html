@@ -757,59 +757,31 @@ function flash(msg){const f=document.getElementById('flash');f.textContent=msg;f
    SERVER RENDER — interroga ogni 30s il server che
    a sua volta aggiorna orari e ritardi da ViaggiaTreno
 ═══════════════════════════════════════════════ */
-// Ritardi live — chiamata diretta a ViaggiaTreno tramite proxy pubblici
-// Tre proxy in sequenza: se uno fallisce prova il prossimo
+// Ritardi live — Cloudflare Worker dedicato
+// Gira su 200+ server globali, non bloccabile da Trenitalia, sempre attivo
+const WORKER_URL = 'https://sparkling-morning-4aa3.robertalefosse.workers.dev';
+
 async function fetchVT(){
-  const now = new Date();
-  const ts = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+
-    String(now.getDate()).padStart(2,'0')+'T'+
-    String(now.getHours()).padStart(2,'0')+':'+
-    String(now.getMinutes()).padStart(2,'0')+':00';
+  try{
+    const r = await fetch(WORKER_URL + '/ritardi', {signal: AbortSignal.timeout(5000)});
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    const d = await r.json();
 
-  // Interroga sia Candiolo che Nichelino per catturare i ritardi in entrambe le direzioni
-  const stazioni = [
-    'S04203', // Candiolo — treni dir Chivasso
-    'S00612', // Nichelino — treni dir Pinerolo
-  ];
-
-  const nuovi = {};
-  let successo = false;
-
-  for(const staz of stazioni){
-    const vtUrl = `https://www.viaggiatreno.it/infomobilita/resteasy/viaggiatreno/partenze/${staz}/${encodeURIComponent(ts)}`;
-    const proxies = [
-      `https://corsproxy.io/?${encodeURIComponent(vtUrl)}`,
-      `https://api.allorigins.win/raw?url=${encodeURIComponent(vtUrl)}`,
-      `https://corsmirror.onrender.com/v1/cors?url=${encodeURIComponent(vtUrl)}`,
-      `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(vtUrl)}`,
-    ];
-    for(const url of proxies){
-      try{
-        const r = await fetch(url, {signal: AbortSignal.timeout(8000)});
-        if(!r.ok) continue;
-        const text = await r.text();
-        if(!text.trim().startsWith('[')) continue;
-        const data = JSON.parse(text);
-        if(!Array.isArray(data)||data.length===0) continue;
-        data.forEach(t => {
-          if(t.numeroTreno!=null && t.ritardo!=null && t.ritardo>0)
-            nuovi[String(t.numeroTreno)] = t.ritardo;
-        });
-        successo = true;
-        break; // proxy funzionante trovato per questa stazione
-      } catch(e){ continue; }
+    const li = document.getElementById('live');
+    if(d.ritardi && d.fonte === 'ViaggiaTreno live'){
+      RITARDI = d.ritardi;
+      const nRit = Object.keys(RITARDI).length;
+      li.textContent = nRit > 0 ? ` ● live +${nRit}rit` : ' ● live';
+      li.className = 'lon';
+      liveDisponibile = true;
+    } else {
+      liveDisponibile = false;
+      li.textContent = ' ● RFI';
+      li.className = 'lof';
     }
-  }
-
-  const li = document.getElementById('live');
-  if(successo){
-    RITARDI = nuovi;
-    const nRit = Object.keys(RITARDI).length;
-    li.textContent = nRit > 0 ? ` ● live +${nRit}rit` : ' ● live';
-    li.className = 'lon';
-    liveDisponibile = true;
-  } else {
+  } catch(err){
     liveDisponibile = false;
+    const li = document.getElementById('live');
     li.textContent = ' ● RFI';
     li.className = 'lof';
   }
@@ -825,10 +797,10 @@ function tick(){
   if(curTab==='mon'){rMappa(tr.filter(apF));rLista(tr);}
 }
 
-// splash progress
+// splash progress — più rapido, max 800ms di attesa percepita
 let prog=0;
 const sfill=document.getElementById('splash-fill');
-const siv=setInterval(()=>{prog=Math.min(prog+Math.random()*25,95);sfill.style.width=prog+'%';},200);
+const siv=setInterval(()=>{prog=Math.min(prog+Math.random()*40,95);sfill.style.width=prog+'%';},100);
 
 // orologio
 setInterval(()=>{
@@ -843,24 +815,27 @@ document.getElementById('sgora').value=String(_n.getHours()).padStart(2,'0')+':'
 rBanner();rOrarioAvviso();
 setInterval(tick,1000);
 
-// Keepalive non necessario — nessun server esterno
+// ── AVVIO RAPIDO ──────────────────────────────────────────
+// 1. Mostra subito la lista treni con orari fissi (istantaneo, nessuna rete)
+tick();
 
-// avvio con splash — aspetta Leaflet prima di tutto
+// 2. Nascondi lo splash dopo massimo 700ms, indipendentemente da mappa/ritardi
+function nascondiSplash(){
+  clearInterval(siv);
+  sfill.style.width='100%';
+  setTimeout(()=>{document.getElementById('splash').classList.add('hide');},250);
+}
+setTimeout(nascondiSplash, 700);
+
+// 3. Carica Leaflet e la mappa in background (non blocca l'interfaccia)
 loadLeaflet(function(){
   initMappa();
-
-  setTimeout(()=>{if(map)map.invalidateSize();tick();},200);
-  fetchVT().then(()=>{
-    clearInterval(siv);sfill.style.width='100%';
-    setTimeout(()=>{document.getElementById('splash').classList.add('hide');},600);
-  }).catch(()=>{
-    clearInterval(siv);sfill.style.width='100%';
-    setTimeout(()=>{document.getElementById('splash').classList.add('hide');},600);
-  });
-  // Aggiorna ritardi ogni 20 secondi (era 45s)
-  setInterval(fetchVT, 20000);
-
+  setTimeout(()=>{if(map)map.invalidateSize();tick();},150);
 });
+
+// 4. Carica i ritardi in background con timeout corto (5s invece di 10s)
+fetchVT();
+setInterval(fetchVT, 20000);
 </script>
 </body>
 </html>
