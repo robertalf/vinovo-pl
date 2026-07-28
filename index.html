@@ -422,15 +422,15 @@ function orarioScaduto(){return new Date()>ORARIO_INVERNALE_SCADE;}
 ═══════════════════════════════════════════════ */
 function getLav(){
   const d=new Date();
-  // FASE 2 (15 giu - 26 lug 2026): bus sostitutivi Pinerolo<->Torino Lingotto
-  // Il PL di Vinovo è tra Candiolo e Nichelino — DENTRO la tratta interrotta
-  // Nessun treno passa dal PL in questo periodo (confermato da RFI e 9 fonti)
+  // FASE 2 (15 giu - 26 lug 2026): nessun treno al PL
   if(d>=new Date('2026-06-15')&&d<=new Date('2026-07-26'))
-    return{f:2,blocca:true,msg:'⚠ Lavori (15 giu–26 lug 2026): bus sostitutivi sulla tratta Pinerolo↔Torino Lingotto, che include il P.L. di Vinovo. Nessun treno passa dal passaggio a livello in questo periodo.',col:'#C8321A'};
-  // FASE 1 (9 mag - 14 giu 2026): bus sostitutivi solo Pinerolo<->None
-  // Vinovo è tra None e Torino — FUORI dalla tratta interrotta, treni regolari
+    return{f:2,blocca:true,msg:'⚠ Lavori (15 giu–26 lug 2026): bus sostitutivi sulla tratta Pinerolo↔Torino Lingotto. Nessun treno al P.L. di Vinovo.',col:'#C8321A'};
+  // FASE 1 (9 mag - 14 giu 2026)
   if(d>=new Date('2026-05-09')&&d<=new Date('2026-06-14'))
     return{f:1,blocca:false,msg:'⚠ Lavori (9 mag–14 giu 2026): bus sostitutivi Pinerolo↔None. Treni da None regolari — Vinovo servita normalmente.',col:'#C07010'};
+  // Post-lavori: fino al 30 agosto +2min strutturali su tutta la linea (fonte: RFI)
+  if(d>=new Date('2026-07-27')&&d<=new Date('2026-08-30'))
+    return{f:3,blocca:false,msg:'⚠ Fino al 30 ago 2026: possibili ritardi di 2 min per manutenzioni residue (fonte RFI). Servizio regolare.',col:'#C07010'};
   return{f:0,blocca:false,msg:null,col:null};
 }
 const LAV=getLav();
@@ -469,10 +469,12 @@ function buildTreni(){
   if(LAV.blocca)return[];
   const fest=isFest();
   const lista=[];
-  // Offset lavori:
-  // Fase 1 (9 mag-14 giu): dir Pinerolo +4 min (arrivo None posticipato)
-  // Fase 2 (15 giu-26 lug): dir Pinerolo +5 min (arrivo Lingotto posticipato)
-  const offsetPin = LAV.fase===1 ? 4 : LAV.fase===2 ? 5 : 0;
+  // Offset strutturali per lavori:
+  // Fase 1 (9 mag-14 giu): dir Pinerolo +4 min
+  // Fase 2 (15 giu-26 lug): nessun treno (blocca=true, non arriva qui)
+  // Post-lavori (27 lug-30 ago): +2 min su tutta la linea (fonte RFI)
+  const offsetTutti = LAV.f===3 ? 2 : 0;
+  const offsetPin = LAV.f===1 ? 4 : offsetTutti;
 
   ORARI_FISSI.forEach(t=>{
     if(fest && t.per==='FER6') return;  // FER6: non circola la domenica
@@ -480,7 +482,7 @@ function buildTreni(){
     const rit=RITARDI[t.n]||0;
     // Usa orario live se disponibile, altrimenti fisso
     // Per dir Pinerolo in fase 1 lavori, aggiungi 4 min all'orario
-    const pinOffset = (t.dir==='Pinerolo') ? offsetPin : 0;
+    const pinOffset = (t.dir==='Pinerolo') ? offsetPin : offsetTutti;
     const oraPL=ORARI_LIVE[t.n]||aM(t.ref, 2+pinOffset);
     const sec=secTo(oraPL,rit);
     if(sec>=-180&&sec<=10800){
