@@ -428,9 +428,7 @@ function getLav(){
   // FASE 1 (9 mag - 14 giu 2026)
   if(d>=new Date('2026-05-09')&&d<=new Date('2026-06-14'))
     return{f:1,blocca:false,msg:'⚠ Lavori (9 mag–14 giu 2026): bus sostitutivi Pinerolo↔None. Treni da None regolari — Vinovo servita normalmente.',col:'#C07010'};
-  // Post-lavori: fino al 30 agosto +2min strutturali su tutta la linea (fonte: RFI)
-  if(d>=new Date('2026-07-27')&&d<=new Date('2026-08-30'))
-    return{f:3,blocca:false,msg:'⚠ Fino al 30 ago 2026: possibili ritardi di 2 min per manutenzioni residue (fonte RFI). Servizio regolare.',col:'#C07010'};
+  // Dal 27 luglio: servizio normale. Fino al 30 ago possibili +2min (gestiti dai ritardi live)
   return{f:0,blocca:false,msg:null,col:null};
 }
 const LAV=getLav();
@@ -469,12 +467,9 @@ function buildTreni(){
   if(LAV.blocca)return[];
   const fest=isFest();
   const lista=[];
-  // Offset strutturali per lavori:
-  // Fase 1 (9 mag-14 giu): dir Pinerolo +4 min
-  // Fase 2 (15 giu-26 lug): nessun treno (blocca=true, non arriva qui)
-  // Post-lavori (27 lug-30 ago): +2 min su tutta la linea (fonte RFI)
-  const offsetTutti = LAV.f===3 ? 2 : 0;
-  const offsetPin = LAV.f===1 ? 4 : offsetTutti;
+  // Offset strutturali: Fase 1 dir Pinerolo +4 min. Tutto il resto normale.
+  const offsetTutti = 0;
+  const offsetPin = LAV.f===1 ? 4 : 0;
 
   ORARI_FISSI.forEach(t=>{
     if(fest && t.per==='FER6') return;  // FER6: non circola la domenica
@@ -772,13 +767,20 @@ async function fetchVT(){
     const d = await r.json();
 
     const li = document.getElementById('live');
-    if(d.ritardi && d.fonte === 'ViaggiaTreno live'){
-      RITARDI = d.ritardi;
+    if(d.fonte === 'ViaggiaTreno live'){
+      RITARDI = d.ritardi || {};
       const nRit = Object.keys(RITARDI).length;
-      li.textContent = nRit > 0 ? ` ● live +${nRit}rit` : ' ● live';
-      li.className = 'lon';
+      // Distingui chiaramente: live con ritardi, live in orario, o RFI
+      if(nRit > 0){
+        li.textContent = ` ● live +${nRit}rit`;
+        li.className = 'lon';
+      } else {
+        li.textContent = ' ● live (in orario)';
+        li.className = 'lon';
+      }
       liveDisponibile = true;
     } else {
+      RITARDI = {};
       liveDisponibile = false;
       li.textContent = ' ● RFI';
       li.className = 'lof';
