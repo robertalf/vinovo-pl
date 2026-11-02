@@ -26,3 +26,895 @@
 function loadLeaflet(cb){
   if(window.L){cb();return;}
   const s=document.createElement('script');
+  s.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+  s.onload=cb;
+  s.onerror=function(){
+    document.getElementById('map-err').style.display='flex';
+    cb(); // avvia comunque l'app senza mappa
+  };
+  document.head.appendChild(s);
+}
+</script>
+
+<style>
+:root{
+  --bg:#F5F0E8; --bg2:#ECE6DA; --bg3:#E2DAC8;
+  --ink:#1C1814; --inkS:#5C5040; --inkF:#A09070;
+  --bdr:#D0C8B4;
+  --red:#C8321A;  --redL:#FAE8E4;
+  --amb:#C07010;  --ambL:#FBF0DC;
+  --grn:#1A7A3A;  --grnL:#E4F2E8;
+  --blu:#1850A0;  --bluL:#E0ECFA;
+  --mer:#8A4010;
+  --rail:#5A4828; --railT:#8A7050;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{width:100%;height:100%;background:var(--bg);overflow:hidden;font-family:'DM Mono',monospace;}
+::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:2px;}
+
+/* ── SPLASH / LOADING ── */
+#splash{
+  position:fixed;inset:0;
+  background:#1A1410;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  z-index:9999;transition:opacity .5s;
+}
+#splash.hide{opacity:0;pointer-events:none;}
+#splash svg{width:120px;height:120px;margin-bottom:24px;}
+#splash-title{font-family:'Fraunces',serif;font-size:32px;font-weight:700;color:white;letter-spacing:-.02em;}
+#splash-title em{font-style:italic;color:#4A90E0;}
+#splash-sub{font-size:9px;color:#605040;letter-spacing:.12em;margin-top:6px;}
+#splash-bar{width:120px;height:2px;background:#2A2010;border-radius:1px;margin-top:28px;overflow:hidden;}
+#splash-fill{width:0;height:100%;background:#C8321A;border-radius:1px;transition:width .4s ease;}
+
+/* ── APP SHELL ── */
+#app{width:100%;height:100dvh;display:flex;flex-direction:column;max-width:480px;margin:0 auto;background:var(--bg);}
+
+/* ── HEADER ── */
+#hdr{
+  padding:13px 18px 11px;
+  background:var(--bg);
+  border-bottom:2px solid var(--ink);
+  flex-shrink:0;
+}
+.hr{display:flex;justify-content:space-between;align-items:flex-start;}
+.htit{font-family:'Fraunces',serif;font-size:26px;font-weight:700;color:var(--ink);line-height:1;letter-spacing:-.03em;}
+.htit em{font-style:italic;color:var(--blu);}
+.hsub{font-size:8px;color:var(--inkF);letter-spacing:.08em;margin-top:3px;display:flex;align-items:center;gap:5px;}
+#live{font-size:8px;letter-spacing:.04em;}
+.lon{color:var(--grn);} .lof{color:var(--inkF);}
+#clk{font-size:11px;color:var(--inkS);align-self:flex-start;margin-top:2px;font-family:'DM Mono',monospace;}
+#tabs{display:flex;gap:5px;margin-top:10px;}
+.tp{padding:5px 14px;border-radius:20px;border:none;cursor:pointer;font-family:'DM Mono',monospace;font-size:8.5px;letter-spacing:.05em;font-weight:500;transition:all .14s;}
+.tp.on{background:var(--ink);color:var(--bg);}
+.tp.off{background:transparent;color:var(--inkF);border:1px solid var(--bdr);}
+
+/* ── BANNER LAVORI ── */
+#bnr{display:none;padding:7px 18px;border-bottom:1px solid;flex-shrink:0;}
+#bnrtxt{font-size:8px;line-height:1.7;letter-spacing:.03em;}
+
+/* ── AVVISO ORARIO SCADUTO ── */
+#bnr-orario{display:none;padding:6px 18px;border-bottom:1px solid #D0C8B4;background:#FFFBF0;flex-shrink:0;}
+#bnr-orario p{font-size:8px;color:#8A6010;letter-spacing:.04em;line-height:1.6;}
+
+/* ── STATO PL ── */
+#stato{display:flex;align-items:center;gap:10px;padding:9px 18px;border-bottom:1px solid var(--bdr);flex-shrink:0;transition:background .3s;}
+#sdot{width:11px;height:11px;border-radius:50%;flex-shrink:0;}
+#stxt{font-size:10px;letter-spacing:.03em;flex:1;font-weight:500;}
+@keyframes pu{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.25;transform:scale(.75)}}
+.pu{animation:pu .85s ease-in-out infinite;}
+
+/* ── MAPPA ── */
+#mapwrap{height:235px;width:100%;position:relative;border-bottom:1px solid var(--bdr);flex-shrink:0;background:#C8D8E8;}
+#lmap{width:100%;height:100%;}
+
+/* legenda */
+#legend{position:absolute;top:7px;right:7px;z-index:1000;background:rgba(245,240,232,.94);border:1px solid var(--bdr);border-radius:8px;padding:6px 10px;display:flex;flex-direction:column;gap:4px;backdrop-filter:blur(4px);}
+.lr{display:flex;align-items:center;gap:6px;}
+.li{width:20px;height:9px;border-radius:2px;flex-shrink:0;}
+.lt{font-size:7px;color:var(--inkS);letter-spacing:.04em;}
+
+/* marker treni */
+.tm{background:var(--blu);color:white;font-family:'DM Mono',monospace;font-size:8px;font-weight:700;text-align:center;line-height:19px;border-radius:5px;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,.2);white-space:nowrap;padding:0 6px;}
+.tm.mc{background:var(--mer);}
+.tm.ia{background:var(--amb);}
+.tm.ur{background:var(--red);}
+
+/* ── FILTRI ── */
+#flt{display:flex;gap:4px;padding:6px 12px;background:var(--bg);border-bottom:1px solid var(--bdr);flex-shrink:0;overflow-x:auto;}
+#flt::-webkit-scrollbar{height:0;}
+.fc{padding:4px 10px;border-radius:14px;border:none;cursor:pointer;font-family:'DM Mono',monospace;font-size:8px;letter-spacing:.05em;white-space:nowrap;flex-shrink:0;transition:all .1s;font-weight:500;}
+.fc.on{background:var(--ink);color:var(--bg);}
+.fc.off{background:transparent;color:var(--inkF);border:1px solid var(--bdr);}
+
+/* ── LISTA TRENI ── */
+#lst{flex:1;overflow-y:auto;}
+.tc{display:flex;gap:11px;padding:10px 18px;border-bottom:1px solid var(--bg2);border-left:3px solid transparent;}
+.tc.p{border-left-color:var(--ink);}
+.tl{width:44px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.tn{font-family:'Fraunces',serif;font-weight:700;line-height:1;}
+.tnl{font-size:7px;color:var(--inkF);margin-top:1px;letter-spacing:.05em;}
+.tr2{flex:1;min-width:0;}
+.ttr{display:flex;gap:5px;align-items:center;margin-bottom:3px;flex-wrap:wrap;}
+.ch{font-size:7.5px;font-weight:500;padding:1px 6px;border-radius:3px;letter-spacing:.04em;}
+.cs{background:var(--bluL);color:var(--blu);border:1px solid #B0C8EC;}
+.cm{background:var(--ambL);color:var(--mer);border:1px solid #DEC080;}
+.cr{background:var(--ambL);color:var(--amb);border:1px solid #DEC080;}
+.cn{background:var(--bg2);color:var(--inkF);border:1px solid var(--bdr);}
+.tno{font-size:10px;color:var(--inkF);}
+.tdir{font-size:9px;font-weight:500;}
+.dc{color:var(--blu);} .dp{color:#7A5010;}
+.tbr{display:flex;gap:9px;align-items:center;flex-wrap:wrap;}
+.tora{font-family:'Fraunces',serif;font-size:18px;font-weight:600;color:var(--ink);letter-spacing:-.01em;}
+.tbar{font-size:8px;color:var(--inkF);background:var(--bg2);border:1px solid var(--bdr);padding:2px 7px;border-radius:4px;}
+.empty{padding:36px 18px;text-align:center;font-size:10px;color:var(--inkF);line-height:2.2;letter-spacing:.04em;}
+
+/* ── SEGNALA ── */
+#scr-seg{display:none;flex:1;overflow-y:auto;padding:18px;}
+.sh{font-family:'Fraunces',serif;font-size:21px;font-weight:700;color:var(--ink);margin-bottom:3px;letter-spacing:-.02em;}
+.sb{font-size:9px;color:var(--inkF);line-height:1.8;letter-spacing:.03em;margin-bottom:18px;}
+#bora{width:100%;padding:15px;border-radius:12px;border:none;cursor:pointer;background:var(--ink);color:var(--bg);font-family:'Fraunces',serif;font-size:19px;font-weight:600;letter-spacing:-.01em;transition:all .12s;margin-bottom:5px;}
+#bora:active{transform:scale(.98);opacity:.85;}
+.bhint{font-size:8px;color:var(--inkF);text-align:center;margin-bottom:20px;letter-spacing:.04em;}
+.ssec{font-size:8px;color:var(--inkF);letter-spacing:.1em;margin-bottom:9px;margin-top:4px;}
+.scard{background:white;border:1px solid var(--bdr);border-radius:10px;padding:13px 15px;margin-bottom:13px;}
+.srow{display:flex;gap:10px;align-items:center;margin-bottom:9px;}
+.srow:last-child{margin-bottom:0;}
+.slbl{font-size:8px;color:var(--inkS);width:42px;flex-shrink:0;letter-spacing:.04em;font-weight:500;}
+.ssel,.sinp{flex:1;background:var(--bg);border:1px solid var(--bdr);border-radius:6px;color:var(--ink);padding:6px 9px;font-family:'DM Mono',monospace;font-size:10px;-webkit-appearance:none;transition:border .12s;}
+.ssel:focus,.sinp:focus{outline:none;border-color:var(--ink);}
+.bsave{width:100%;padding:9px;border-radius:8px;border:1.5px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer;font-family:'DM Mono',monospace;font-size:9px;font-weight:500;letter-spacing:.06em;transition:all .12s;}
+.bsave:active{background:var(--ink);color:var(--bg);}
+.stoitem{background:white;border:1px solid var(--bdr);border-radius:8px;padding:9px 13px;display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.stim{font-family:'Fraunces',serif;font-size:20px;font-weight:600;color:var(--ink);letter-spacing:-.02em;}
+.smeta{font-size:8px;color:var(--inkF);margin-top:1px;letter-spacing:.03em;}
+.srgt{display:flex;gap:7px;align-items:center;}
+.sch2{font-size:7.5px;padding:2px 6px;border-radius:3px;}
+.ss{background:var(--bluL);color:var(--blu);border:1px solid #B0C8EC;}
+.sm{background:var(--ambL);color:var(--mer);border:1px solid #DEC080;}
+.sg{background:var(--grnL);color:var(--grn);border:1px solid #A0C8A0;}
+.bdel{background:none;border:none;cursor:pointer;color:var(--inkF);font-size:14px;padding:3px 5px;border-radius:4px;}
+.bdel:active{color:var(--red);background:var(--redL);}
+.patc{background:var(--ambL);border:1px solid #DEC080;border-radius:8px;padding:11px 13px;margin-bottom:13px;}
+.patt{font-size:8px;color:var(--amb);letter-spacing:.08em;font-weight:500;margin-bottom:5px;}
+.patb{font-size:9px;color:var(--inkS);line-height:1.9;}
+
+/* ── FLASH ── */
+#flash{position:fixed;top:22px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 18px;border-radius:20px;font-size:10px;letter-spacing:.05em;z-index:9999;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.2);}
+#flash.show{opacity:1;}
+
+/* ── FOOTER ── */
+#ftr{padding:5px 18px 9px;background:var(--bg2);border-top:1px solid var(--bdr);flex-shrink:0;}
+#ftr p{font-size:7px;color:var(--inkF);text-align:center;line-height:1.7;letter-spacing:.04em;}
+
+/* leaflet tooltip */
+.leaflet-tooltip{font-family:'DM Mono',monospace;font-size:9px;background:rgba(245,240,232,.96);border:1px solid var(--bdr);border-radius:4px;color:var(--ink);box-shadow:none;padding:3px 7px;}
+.leaflet-tooltip::before{border-top-color:var(--bdr);}
+.leaflet-popup-content-wrapper{font-family:'DM Mono',monospace;font-size:10px;border-radius:8px;border:1px solid var(--bdr);box-shadow:0 4px 16px rgba(0,0,0,.1);}
+.leaflet-popup-tip{display:none;}
+</style>
+</head>
+<body>
+
+<!-- SPLASH SCREEN -->
+<div id="splash">
+  <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    <rect width="200" height="200" rx="40" fill="#1A1410"/>
+    <rect x="20" y="95" width="160" height="10" rx="2" fill="#5C4A30"/>
+    <rect x="34" y="88" width="8" height="24" rx="2" fill="#8C7A60"/>
+    <rect x="58" y="88" width="8" height="24" rx="2" fill="#8C7A60"/>
+    <rect x="82" y="88" width="8" height="24" rx="2" fill="#8C7A60"/>
+    <rect x="114" y="88" width="8" height="24" rx="2" fill="#8C7A60"/>
+    <rect x="138" y="88" width="8" height="24" rx="2" fill="#8C7A60"/>
+    <rect x="162" y="88" width="8" height="24" rx="2" fill="#8C7A60"/>
+    <rect x="94" y="68" width="12" height="64" rx="3" fill="#C8321A"/>
+    <rect x="40" y="68" width="52" height="10" rx="3" fill="#C8321A"/>
+    <rect x="108" y="68" width="52" height="10" rx="3" fill="#C8321A"/>
+    <rect x="22" y="78" width="60" height="28" rx="7" fill="#1A5A9A"/>
+    <rect x="28" y="84" width="16" height="12" rx="3" fill="white" opacity=".9"/>
+    <rect x="50" y="84" width="16" height="12" rx="3" fill="white" opacity=".9"/>
+    <text x="100" y="168" text-anchor="middle" font-family="Georgia,serif" font-size="30" font-weight="bold" fill="white">P.L. Vinovo</text>
+  </svg>
+  <div id="splash-title">P.L. <em>Vinovo</em></div>
+  <div id="splash-sub">SFM2 · SP143 · MONITOR LIVE</div>
+  <div id="splash-bar"><div id="splash-fill"></div></div>
+</div>
+
+<div id="app">
+  <div id="hdr">
+    <div class="hr">
+      <div>
+        <div class="htit">P.L. <em>Vinovo</em></div>
+        <div class="hsub">
+          SP143 · KM 5+806 · SFM2
+          <span id="live" class="lof"> ● stimato</span>
+        </div>
+      </div>
+      <span id="clk"></span>
+    </div>
+    <div id="tabs">
+      <button class="tp on"  id="bmon" onclick="setTab('mon')">Monitor</button>
+      <button class="tp off" id="bseg" onclick="setTab('seg')">+ Segnala</button>
+    </div>
+  </div>
+
+  <div id="bnr"><p id="bnrtxt"></p></div>
+  <div id="bnr-orario"><p id="bnr-orario-txt"></p></div>
+  <div id="stato"><div id="sdot"></div><div id="stxt"></div></div>
+
+  <!-- MONITOR -->
+  <div id="scr-mon" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+    <div id="mapwrap">
+      <div id="lmap"></div>
+      <div id="map-err" style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;background:#EBF0F8;flex-direction:column;gap:8px;">
+        <span style="font-size:28px">🗺</span>
+        <span style="font-size:10px;color:#A09070;font-family:monospace;text-align:center;padding:0 20px">Mappa non disponibile offline.<br>Connettiti a internet per vederla.</span>
+      </div>
+      <div id="legend">
+        <div class="lr"><div class="li" style="background:var(--blu)"></div><span class="lt">SFM2</span></div>
+        <div class="lr"><div class="li" style="background:var(--mer)"></div><span class="lt">Merci</span></div>
+        <div class="lr"><div class="li" style="background:var(--red);border-radius:50%;width:10px;height:10px"></div><span class="lt">P.L. chiuso</span></div>
+        <div class="lr"><div class="li" style="background:var(--grn);border-radius:50%;width:10px;height:10px"></div><span class="lt">P.L. aperto</span></div>
+        <div class="lr"><div class="li" style="background:var(--railT);height:4px;border-radius:2px"></div><span class="lt">Binario</span></div>
+      </div>
+    </div>
+    <div id="flt">
+      <button class="fc on"  data-f="tutti"  onclick="setF('tutti')">Tutti</button>
+      <button class="fc off" data-f="chi"    onclick="setF('chi')">▶ Chivasso</button>
+      <button class="fc off" data-f="pin"    onclick="setF('pin')">◀ Pinerolo</button>
+      <button class="fc off" data-f="sfm2"   onclick="setF('sfm2')">SFM2</button>
+      <button class="fc off" data-f="merci"  onclick="setF('merci')">Merci</button>
+    </div>
+    <div id="lst"></div>
+  </div>
+
+  <!-- SEGNALA -->
+  <div id="scr-seg">
+    <div class="sh">Segnala transito</div>
+    <div class="sb">Vedi un treno? Registralo con un tap.<br>L'app impara e migliora le stime nel tempo.</div>
+    <button id="bora" onclick="segnalaOra()">🚆 Passato adesso</button>
+    <div class="bhint">Registra il transito con l'ora esatta</div>
+    <div class="ssec">INSERIMENTO MANUALE</div>
+    <div class="scard">
+      <div class="srow"><span class="slbl">Tipo</span><select class="ssel" id="sgtipo"><option value="SFM2">SFM2 (passeggeri)</option><option value="Merci">Merci</option></select></div>
+      <div class="srow"><span class="slbl">Ora</span><input class="sinp" type="time" id="sgora"/></div>
+      <div class="srow"><span class="slbl">Dir.</span><select class="ssel" id="sgdir"><option value="Chivasso">▶ Verso Chivasso</option><option value="Pinerolo">◀ Verso Pinerolo</option><option value="?">Non so</option></select></div>
+      <button class="bsave" onclick="salva()">Salva segnalazione</button>
+    </div>
+    <div id="patwrap" style="display:none">
+      <div class="ssec">SCHEMA MERCI RILEVATO</div>
+      <div class="patc"><div class="patt">Passaggi stimati dai tuoi avvistamenti</div><div class="patb" id="pattxt"></div></div>
+    </div>
+    <div class="ssec">STORICO</div>
+    <div id="storico"></div>
+    <div style="height:16px"></div>
+  </div>
+
+  <div id="ftr"><p id="ftrtxt">Orari RFI ufficiali · OpenStreetMap · ViaggiaTreno (non ufficiale) · Merci: stimato da segnalazioni · Rispettare sempre i segnali ufficiali · <span style="text-decoration:underline;cursor:pointer" onclick="diagnosi()">Diagnostica ritardi</span></p><pre id="diagOut" style="display:none;white-space:pre-wrap;word-break:break-all;font-size:9px;line-height:1.5;margin-top:6px;padding:6px;background:#fff;border:1px solid #D0C8B4;border-radius:6px;color:#1C1814"></pre></div>
+</div>
+<div id="flash"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+/* ═══════════════════════════════════════════════
+   ORARIO INVERNALE RFI — 14 dic 2025 / 13 giu 2026
+   Fonte: prm.rfi.it stazione Candiolo id=796
+   PL Vinovo = +2 min dalla stazione di riferimento
+═══════════════════════════════════════════════ */
+const ORARIO_INVERNALE_SCADE = new Date('2026-12-13'); // nuovo orario invernale dal 13 dic 2026
+
+const ORARI_FISSI = [
+  // ══ ORARI UFFICIALI PDF sfmtorino.it (14 dic 2025 – 13 giu 2026) ══
+  // Dir CHIVASSO — ref = partenza da Candiolo, PL = ref+2min
+  // G=tutti i giorni, FER6=lun-sab, FEST=solo domenica
+  {n:'26200',dir:'Chivasso',ref:'05:42',per:'FER6'},
+  {n:'26204',dir:'Chivasso',ref:'06:42',per:'FER6'},
+  {n:'26302',dir:'Chivasso',ref:'07:15',per:'FER6'},
+  {n:'26206',dir:'Chivasso',ref:'07:42',per:'FER6'},
+  {n:'26304',dir:'Chivasso',ref:'08:15',per:'G'},
+  {n:'26208',dir:'Chivasso',ref:'08:42',per:'FER6'},
+  {n:'26308',dir:'Chivasso',ref:'09:15',per:'FER6'},
+  {n:'26210',dir:'Chivasso',ref:'09:42',per:'G'},
+  {n:'26212',dir:'Chivasso',ref:'10:42',per:'FER6'},
+  {n:'26214',dir:'Chivasso',ref:'11:42',per:'G'},
+  {n:'26216',dir:'Chivasso',ref:'12:42',per:'FER6'},
+  {n:'26218',dir:'Chivasso',ref:'13:42',per:'G'},
+  {n:'26312',dir:'Chivasso',ref:'14:15',per:'FER6'},
+  {n:'26220',dir:'Chivasso',ref:'14:42',per:'FER6'},
+  {n:'26222',dir:'Chivasso',ref:'15:42',per:'G'},
+  {n:'26224',dir:'Chivasso',ref:'16:42',per:'FER6'},
+  {n:'26226',dir:'Chivasso',ref:'17:42',per:'G'},
+  {n:'26314',dir:'Chivasso',ref:'18:15',per:'FER6'},
+  {n:'26228',dir:'Chivasso',ref:'18:42',per:'FER6'},
+  {n:'26316',dir:'Chivasso',ref:'19:15',per:'FER6'},
+  {n:'26230',dir:'Chivasso',ref:'19:42',per:'G'},
+  {n:'26232',dir:'Chivasso',ref:'20:42',per:'FER6'},
+  {n:'26234',dir:'Chivasso',ref:'21:42',per:'G'},
+  // Dir PINEROLO — ref = passaggio a Nichelino, PL = ref+2min
+  {n:'26252',dir:'Pinerolo',ref:'06:03',per:'FER6'},
+  {n:'26320',dir:'Pinerolo',ref:'06:34',per:'FER6'},
+  {n:'26254',dir:'Pinerolo',ref:'07:09',per:'FER6'},
+  {n:'26322',dir:'Pinerolo',ref:'07:34',per:'FER6'},
+  {n:'26256',dir:'Pinerolo',ref:'08:09',per:'G'},
+  {n:'26324',dir:'Pinerolo',ref:'08:34',per:'FER6'},
+  {n:'26258',dir:'Pinerolo',ref:'09:09',per:'FER6'},
+  {n:'26260',dir:'Pinerolo',ref:'10:09',per:'G'},
+  {n:'26262',dir:'Pinerolo',ref:'11:09',per:'FER6'},
+  {n:'26264',dir:'Pinerolo',ref:'12:09',per:'G'},
+  {n:'26266',dir:'Pinerolo',ref:'13:09',per:'FER6'},
+  {n:'26330',dir:'Pinerolo',ref:'13:34',per:'FER6'},
+  {n:'26268',dir:'Pinerolo',ref:'14:09',per:'G'},
+  {n:'26270',dir:'Pinerolo',ref:'15:09',per:'FER6'},
+  {n:'26272',dir:'Pinerolo',ref:'16:09',per:'G'},
+  {n:'26274',dir:'Pinerolo',ref:'17:09',per:'FER6'},
+  {n:'26336',dir:'Pinerolo',ref:'17:34',per:'FER6'},
+  {n:'26276',dir:'Pinerolo',ref:'18:09',per:'G'},
+  {n:'26338',dir:'Pinerolo',ref:'18:34',per:'FER6'},
+  {n:'26278',dir:'Pinerolo',ref:'19:09',per:'FER6'},
+  {n:'26280',dir:'Pinerolo',ref:'20:09',per:'G'},
+  {n:'26282',dir:'Pinerolo',ref:'21:09',per:'FER6'},
+  {n:'26294',dir:'Pinerolo',ref:'22:09',per:'FEST'},
+];
+
+/* ═══════════════════════════════════════════════
+   FERROVIA E MAPPA
+═══════════════════════════════════════════════ */
+const PL_COORDS = [44.975052, 7.616224]; // Coordinate reali da Google Maps
+const FERROVIA = [
+  [44.8875,7.3292],                          // Pinerolo
+  [44.8932,7.3480],                          // Pinerolo Olimpica (idx=1)
+  [44.9000,7.3820],                          // Piscina di Pinerolo (idx=2)
+  [44.9130,7.4660],                          // Airasca (idx=3)
+  [44.9210,7.4940],[44.9310,7.5290],         // None
+  [44.9410,7.5510],[44.9520,7.5760],
+  [44.9611,7.5990],                          // Candiolo
+  [44.9660,7.6060],[44.9710,7.6110],
+  [44.975052,7.616224],                      // PL Vinovo ← idx=13 (coordinate reali)
+  [44.9790,7.6230],[44.9850,7.6320],[44.9880,7.6370],
+  [44.9914,7.6422],                          // Nichelino
+  [44.9990,7.6520],[45.0080,7.6590],[45.0180,7.6640],
+  [45.0298,7.6680],                          // Lingotto
+  [45.0450,7.6672],[45.0580,7.6665],
+  [45.0709,7.6658],                          // Porta Susa
+  [45.0750,7.6620],[45.0820,7.6550],
+  [45.0920,7.6490],[45.1010,7.6430],         // Rebaudengo
+  [45.1010,7.6430],                          // Torino Rebaudengo
+  [45.1120,7.6370],[45.1250,7.6310],
+  [45.1380,7.6250],                          // Torino Stura
+  [45.1500,7.6320],[45.1650,7.6420],
+  [45.1820,7.6510],[45.2050,7.6620],
+  [45.2600,7.7050],                          // Settimo Torinese
+  [45.3000,7.7280],[45.3300,7.7420],
+  [45.3520,7.7530],                          // Brandizzo
+  [45.3700,7.7620],[45.3900,7.7700],
+  [45.4280,7.8820],                          // Chivasso
+];
+const IDX_PL=13, N_SEG=FERROVIA.length-1; // +2 per Pinerolo Olimpica e Piscina
+const STAZ=[
+  {l:'Pinerolo',   lat:44.8875,lon:7.3292},
+  {l:'Pin. Olimpica',lat:44.8932,lon:7.3480},
+  {l:'Piscina Pin.',lat:44.9000,lon:7.3820},
+  {l:'Airasca',    lat:44.9130,lon:7.4660},
+  {l:'None',       lat:44.9310,lon:7.5290},
+  {l:'Candiolo',   lat:44.9611,lon:7.5990},
+  {l:'Nichelino',  lat:44.9914,lon:7.6422},
+  {l:'Moncalieri', lat:45.0080,lon:7.6590},
+  {l:'Lingotto',   lat:45.0298,lon:7.6680},
+  {l:'P. Susa',    lat:45.0709,lon:7.6658},
+  {l:'Rebaudengo', lat:45.1010,lon:7.6430},
+  {l:'T. Stura',   lat:45.1380,lon:7.6250},
+  {l:'Settimo',    lat:45.2600,lon:7.7050},
+  {l:'Brandizzo',  lat:45.3520,lon:7.7530},
+  {l:'Chivasso',   lat:45.4280,lon:7.8820},
+];
+
+/* ═══════════════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════════════ */
+function aM(hhmm,d){const[h,m]=hhmm.split(':').map(Number),t=h*60+m+d;return String(Math.floor(t/60)%24).padStart(2,'0')+':'+String(t%60).padStart(2,'0');}
+function secTo(hhmm,r=0){const now=new Date(),[h,m]=hhmm.split(':').map(Number),t=new Date(now);t.setHours(h,m+r,0,0);if(t-now<-600000)t.setDate(t.getDate()+1);return Math.round((t-now)/1000);}
+function isFest(){const d=new Date().getDay();return d===0;} // 0=domenica
+function orarioScaduto(){return new Date()>ORARIO_INVERNALE_SCADE;}
+
+/* ═══════════════════════════════════════════════
+   STATO LAVORI
+═══════════════════════════════════════════════ */
+function getLav(){
+  const d=new Date();
+  // FASE 2 (15 giu - 26 lug 2026): nessun treno al PL
+  if(d>=new Date('2026-06-15')&&d<=new Date('2026-07-26'))
+    return{f:2,blocca:true,msg:'⚠ Lavori (15 giu–26 lug 2026): bus sostitutivi sulla tratta Pinerolo↔Torino Lingotto. Nessun treno al P.L. di Vinovo.',col:'#C8321A'};
+  // FASE 1 (9 mag - 14 giu 2026)
+  if(d>=new Date('2026-05-09')&&d<=new Date('2026-06-14'))
+    return{f:1,blocca:false,msg:'⚠ Lavori (9 mag–14 giu 2026): bus sostitutivi Pinerolo↔None. Treni da None regolari — Vinovo servita normalmente.',col:'#C07010'};
+  // Dal 27 luglio: servizio normale. Fino al 30 ago possibili +2min (gestiti dai ritardi live)
+  return{f:0,blocca:false,msg:null,col:null};
+}
+const LAV=getLav();
+
+/* ═══════════════════════════════════════════════
+   STORICO
+═══════════════════════════════════════════════ */
+function ldS(){try{return JSON.parse(localStorage.getItem('vinovo_s')||'[]');}catch{return[];}}
+function svS(s){try{localStorage.setItem('vinovo_s',JSON.stringify(s));}catch{}}
+function calPat(s){
+  const m=s.filter(x=>x.tp==='Merci');if(m.length<3)return null;
+  const f={};m.forEach(x=>{const h=parseInt(x.ora.split(':')[0]),k=h<6?'Notte':h<12?'Mattina':h<18?'Pomeriggio':'Sera';f[k]=(f[k]||0)+1;});
+  return Object.entries(f).sort((a,b)=>b[1]-a[1]).map(([k,n])=>`${k}: ${n} passaggi`).join('\n');
+}
+
+/* ═══════════════════════════════════════════════
+   BUILD TRENI
+   Strategia orari:
+   1. Prova a ottenere orari live da ViaggiaTreno (partenze Candiolo)
+   2. Fallback: orari fissi RFI (validi fino al 13 giu 2026)
+   3. Se orario scaduto e live non disponibile: mostra avviso
+═══════════════════════════════════════════════ */
+let RITARDI={}; // {numeroTreno: minutiRitardo}
+let LIVE_POS={}; // {numeroTreno: {passato:true/false/null, soppresso:bool}} posizione reale rispetto al P.L.
+let LIVE_NOTO={}; // {numeroTreno: true=ritardo letto da ViaggiaTreno, false=non disponibile}
+let ORARI_LIVE={}; // {numero: oraPL} da ViaggiaTreno
+let liveDisponibile=false;
+let filtro='tutti', curTab='mon';
+
+function merciSto(){
+  const cut=Date.now()-48*3600e3;
+  return ldS().filter(s=>s.tp==='Merci'&&new Date(s.ts).getTime()>cut)
+    .map((s,i)=>{const sec=secTo(s.ora);return{n:'Mci-'+i,dir:s.dir||'?',tp:'Merci',oraPL:s.ora,sec,min:Math.floor(sec/60),rit:0,bD:aM(s.ora,-3),bU:aM(s.ora,1),note:'segnalato'};})
+    .filter(t=>t.sec>=-180&&t.sec<=10800);
+}
+
+function buildTreni(){
+  if(LAV.blocca)return[];
+  const fest=isFest();
+  const lista=[];
+  // Offset strutturali: Fase 1 dir Pinerolo +4 min. Tutto il resto normale.
+  const offsetTutti = 0;
+  const offsetPin = LAV.f===1 ? 4 : 0;
+
+  ORARI_FISSI.forEach(t=>{
+    if(fest && t.per==='FER6') return;  // FER6: non circola la domenica
+    if(!fest && t.per==='FEST') return; // FEST: circola solo la domenica
+    const rit=RITARDI[t.n]||0;
+    // Usa orario live se disponibile, altrimenti fisso
+    // Per dir Pinerolo in fase 1 lavori, aggiungi 4 min all'orario
+    const pinOffset = (t.dir==='Pinerolo') ? offsetPin : offsetTutti;
+    const oraPL=ORARI_LIVE[t.n]||aM(t.ref, 2+pinOffset);
+    let sec=secTo(oraPL,rit);
+    let bUfin=aM(oraPL,1+rit);
+    let nota=(LIVE_NOTO[t.n]===true?'live':(LIVE_NOTO[t.n]===false?'orario teorico':null));
+    const lp=LIVE_POS[t.n];
+    if(lp){
+      if(lp.soppresso) return; // treno soppresso: non passa
+      // ViaggiaTreno dice che NON è ancora passato ma l'orario dice di sì: ritardo in aumento
+      if(lp.passato===false && sec<60 && sec>-900){ sec=60; nota='in ritardo · non ancora passato'; const _n=new Date(); bUfin=aM(String(_n.getHours()).padStart(2,'0')+':'+String(_n.getMinutes()).padStart(2,'0'),3); }
+      // ViaggiaTreno dice che è già passato
+      else if(lp.passato===true && sec>-120){ sec=-120; }
+    }
+    if(sec>=-180&&sec<=10800){
+      lista.push({n:t.n,dir:t.dir,tp:'SFM2',oraPL,sec,min:Math.floor(sec/60),rit,
+        bD:aM(oraPL,-3+rit),bU:bUfin,note:nota});
+    }
+  });
+
+  // Merci standard + segnalazioni
+  [{n:'MCi-A',dir:'Chivasso',o:'02:20'},{n:'MCi-B',dir:'Pinerolo',o:'03:44'},{n:'MCi-C',dir:'Chivasso',o:'23:50'}]
+    .forEach(t=>{const sec=secTo(t.o);if(sec>=-180&&sec<=10800)lista.push({n:t.n,dir:t.dir,tp:'Merci',oraPL:t.o,sec,min:Math.floor(sec/60),rit:0,bD:aM(t.o,-3),bU:aM(t.o,1),note:'indicativo'});});
+
+  return[...lista,...merciSto()].sort((a,b)=>a.sec-b.sec);
+}
+
+function apF(t){
+  if(filtro==='tutti')return true;
+  if(filtro==='chi')return t.dir==='Chivasso';
+  if(filtro==='pin')return t.dir==='Pinerolo';
+  if(filtro==='sfm2')return t.tp==='SFM2';
+  if(filtro==='merci')return t.tp==='Merci';
+  return true;
+}
+
+/* ═══════════════════════════════════════════════
+   MAPPA LEAFLET — inizializzata solo dopo caricamento lib
+═══════════════════════════════════════════════ */
+let map=null, plM=null, tMks=[];
+function initMappa(){
+  if(!window.L)return;
+  map=L.map('lmap',{zoomControl:false}).setView(PL_COORDS,12);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
+  L.polyline(FERROVIA,{color:'#5A4828',weight:3.5,opacity:.85,dashArray:'9,5'}).addTo(map);
+  STAZ.forEach(s=>{
+    L.circleMarker([s.lat,s.lon],{radius:5,fillColor:'white',color:'#5A4828',weight:2,fillOpacity:1})
+      .addTo(map).bindTooltip(s.l,{permanent:false,direction:'top',className:'leaflet-tooltip'});
+  });
+  plM=L.circleMarker(PL_COORDS,{radius:9,fillColor:'#1A7A3A',color:'white',weight:3,fillOpacity:1,zIndexOffset:1000})
+    .addTo(map).bindPopup('<b>P.L. Vinovo</b><br>SP143 · KM 5+806<br>SFM2 Torino–Pinerolo');
+}
+
+// Tempi reali di percorrenza in secondi dal PL Vinovo verso ogni stazione
+// Misurati da ViaggiaTreno (orari ufficiali SFM2)
+// Direzione Chivasso: secondi PRIMA del PL (treno si avvicina da Pinerolo)
+// Direzione Pinerolo: secondi PRIMA del PL (treno si avvicina da Chivasso)
+// Tempi VERIFICATI da e656.net treno 26200 (Pinerolo→Chivasso)
+// Candiolo 05:42, PL Vinovo 05:44 = ref
+const TEMPI_DA_PL = {
+  // ══ VERIFICATI da e656.net ══
+  // Treno 26200 (Pinerolo→Chivasso): PL = Candiolo 05:42 +2min = 05:44
+  // Treno 26252 (Chivasso→Pinerolo): PL = Nichelino 06:03 +2min = 06:05
+  Chivasso: [
+    // idx in FERROVIA, secondi prima del PL
+    {idx:10, sec:120},   // Candiolo:          05:42 → PL 05:44 =  2 min
+    {idx:7,  sec:420},   // None:              05:37 → PL 05:44 =  7 min
+    {idx:3,  sec:660},   // Airasca:           05:33 → PL 05:44 = 11 min
+    {idx:2,  sec:960},   // Piscina Pinerolo:  05:28 → PL 05:44 = 16 min
+    {idx:1,  sec:1440},  // Pinerolo Olimpica: 05:20 → PL 05:44 = 24 min
+    {idx:0,  sec:1620},  // Pinerolo:          05:17 → PL 05:44 = 27 min
+  ],
+  Pinerolo: [
+    {idx:17, sec:120},   // Nichelino:         06:03 → PL 06:05 =  2 min
+    {idx:20, sec:420},   // Moncalieri:        05:58 → PL 06:05 =  7 min
+    {idx:21, sec:720},   // Lingotto:          05:53 → PL 06:05 = 12 min
+    {idx:24, sec:1500},  // Porta Susa:        05:40 → PL 06:05 = 25 min
+    {idx:25, sec:1740},  // Rebaudengo:        05:36 → PL 06:05 = 29 min
+    {idx:26, sec:1980},  // Stura:             05:32 → PL 06:05 = 33 min
+    {idx:27, sec:2340},  // Settimo:           05:26 → PL 06:05 = 39 min
+    {idx:28, sec:2700},  // Brandizzo:         05:20 → PL 06:05 = 45 min
+    {idx:29, sec:3000},  // Chivasso:          05:15 → PL 06:05 = 50 min
+  ],
+};
+
+function trainGPS(t){
+  const sec = t.sec;
+  // Mostra il treno da 40 min prima a 5 min dopo il PL
+  if(sec > 2400 || sec < -300) return null;
+
+  const tappe = TEMPI_DA_PL[t.dir];
+  if(!tappe) return null;
+
+  // Trova tra quali due stazioni si trova il treno in base ai secondi mancanti
+  const plIdx = IDX_PL;
+
+  if(sec <= 0){
+    // Treno già passato — si allontana dal PL
+    const fraz = Math.min(-sec/300, 0.99);
+    if(t.dir==='Chivasso'){
+      // Si allontana verso Nichelino (idx 15)
+      const idxA=plIdx, idxB=15;
+      const lat = FERROVIA[idxA][0]+(FERROVIA[idxB][0]-FERROVIA[idxA][0])*fraz;
+      const lon = FERROVIA[idxA][1]+(FERROVIA[idxB][1]-FERROVIA[idxA][1])*fraz;
+      return [lat, lon];
+    } else {
+      // Si allontana verso Candiolo (idx 8)
+      const idxA=plIdx, idxB=8;
+      const lat = FERROVIA[idxA][0]+(FERROVIA[idxB][0]-FERROVIA[idxA][0])*fraz;
+      const lon = FERROVIA[idxA][1]+(FERROVIA[idxB][1]-FERROVIA[idxA][1])*fraz;
+      return [lat, lon];
+    }
+  }
+
+  // Treno in avvicinamento — trova il segmento corretto
+  // tappe è ordinata dalla più vicina alla più lontana
+  for(let i=0; i<tappe.length-1; i++){
+    const tappaVicina  = tappe[i];
+    const tappaLontana = tappe[i+1];
+    if(sec >= tappaVicina.sec && sec <= tappaLontana.sec){
+      // Interpola tra le due tappe
+      const fraz = (sec - tappaVicina.sec) / (tappaLontana.sec - tappaVicina.sec);
+      // Dir Chivasso: viene da sinistra (Pinerolo), indici decrescenti verso PL
+      // Dir Pinerolo: viene da destra (Chivasso), indici crescenti verso PL
+      const idxA = tappaVicina.idx;
+      const idxB = tappaLontana.idx;
+      const lat = FERROVIA[idxA][0]+(FERROVIA[idxB][0]-FERROVIA[idxA][0])*fraz;
+      const lon = FERROVIA[idxA][1]+(FERROVIA[idxB][1]-FERROVIA[idxA][1])*fraz;
+      return [lat, lon];
+    }
+  }
+
+  // Oltre l'ultima tappa — usa l'estremo della linea
+  const ultima = tappe[tappe.length-1];
+  return FERROVIA[ultima.idx];
+}
+
+/* ═══════════════════════════════════════════════
+   RENDER
+═══════════════════════════════════════════════ */
+function cMin(t){
+  if(t.tp==='Merci')return'#8A4010';
+  if(t.sec<=180)return'#C8321A';
+  if(t.sec<=480)return'#C07010';
+  if(t.sec<=1200)return'#1850A0';
+  return'#A09070';
+}
+
+function rStato(tr){
+  // Prendo il primo treno che deve ancora passare (o è appena passato da meno di 60s)
+  const tutti=tr.filter(apF);
+  const pr=tutti.find(t=>t.sec>=-60)||tutti[0];
+  const ch=pr&&pr.sec<=240&&pr.sec>=-60,ia=pr&&pr.sec<=540&&!ch;
+  // Treni previsti passati da poco (<10 min) di cui non abbiamo il dato live: non posso dire che sia aperto
+  const incerti=tutti.filter(t=>t.tp==='SFM2'&&LIVE_NOTO[t.n]!==true&&t.sec<0&&t.sec>=-600);
+  let col,lbl;
+  const ritStr = pr&&pr.rit>0 ? ` (+${pr.rit}′ ritardo)` : '';
+  if(LAV.blocca){
+    col='#C8321A';lbl='Nessun treno — Lavori fase 2 (fino al 26 lug)';
+  } else if(ch){
+    col='#C8321A';
+    lbl=`Barriere chiuse · Riapertura ~${pr.bU}${ritStr}`;
+  } else if(ia){
+    col='#C07010';
+    // Calcola esattamente quando scendono le barriere in secondi
+    const secChiusura = pr.sec - 180; // 3 min prima del transito
+    const minChiusura = Math.ceil(secChiusura/60);
+    lbl = minChiusura <= 0
+      ? `Barriere in chiusura · Transito ~${pr.oraPL}${ritStr}`
+      : `In arrivo tra ${pr.min} min · Sbarre tra ${minChiusura} min (~${pr.bD})${ritStr}`;
+  } else if(incerti.length){
+    const u=incerti[incerti.length-1];
+    col='#C07010';
+    lbl=`Attenzione: treno ${u.n} previsto alle ${u.oraPL}, ritardo non verificabile. Controlla le sbarre`;
+  } else if(pr){
+    col='#1A7A3A';
+    lbl=`Aperto · Prossimo tra ${pr.min} min (${pr.oraPL})${ritStr}`;
+  } else {
+    col='#1A7A3A';lbl='Aperto · Nessun treno nelle prossime 3h';
+  }
+  document.getElementById('sdot').style.background=col;
+  document.getElementById('sdot').classList.toggle('pu',ch);
+  document.getElementById('stxt').style.color=col;
+  document.getElementById('stxt').textContent=lbl;
+  const s=document.getElementById('stato');s.style.background=col+'12';s.style.borderBottomColor=col+'25';
+  if(plM)plM.setStyle({fillColor:ch?'#C8321A':ia?'#C07010':'#1A7A3A'});
+  return ch;
+}
+
+function rLista(tr){
+  const fl=tr.filter(apF),el=document.getElementById('lst');
+  if(!fl.length){el.innerHTML=`<div class="empty">${LAV.blocca?'Nessun treno nelle prossime 3h':'Nessun treno\nnelle prossime 3h'}</div>`;return;}
+  el.innerHTML=fl.map((t,i)=>{
+    const c=cMin(t),p=i===0;
+    return`<div class="tc${p?' p':''}" style="${p?'background:'+c+'08;':''}">
+      <div class="tl">${t.sec<0?'<span style="font-size:20px;color:#1A7A3A">✓</span>':`<span class="tn" style="font-size:${p?27:19}px;color:${c}">${t.min}</span><span class="tnl">min</span>`}</div>
+      <div class="tr2">
+        <div class="ttr">
+          <span class="ch ${t.tp==='Merci'?'cm':'cs'}">${t.tp==='Merci'?'Merci':'SFM2'}</span>
+          <span class="tno">${t.n}</span>
+          <span class="tdir ${t.dir==='Chivasso'?'dc':'dp'}">${t.dir==='Chivasso'?'▶ Chivasso':'◀ Pinerolo'}</span>
+          ${t.rit>0?`<span class="ch cr">+${t.rit}′</span>`:''}
+          ${t.note?`<span class="ch cn">${t.note}</span>`:''}
+        </div>
+        <div class="tbr"><span class="tora">${t.oraPL}</span><span class="tbar">🚧 ${t.bD}–${t.bU} · ~4 min</span></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function rMappa(tr){
+  if(!map||!window.L)return;
+  tMks.forEach(m=>map.removeLayer(m));tMks=[];
+  tr.forEach(t=>{
+    const pos=trainGPS(t);if(!pos)return;
+    const isMerci=t.tp==='Merci';
+    const isUrgente=!isMerci&&t.sec<=240;
+    const isInArrivo=!isMerci&&!isUrgente&&t.sec<=480;
+    let cls='tm';
+    if(isMerci)   cls+=' mc';
+    else if(isUrgente)  cls+=' ur';
+    else if(isInArrivo) cls+=' ia';
+    const ar=t.dir==='Chivasso'?'▶':'◀';
+    const ico=L.divIcon({html:`<div>${ar} ${t.n}</div>`,className:cls,iconSize:[60,19],iconAnchor:[30,9]});
+    const m=L.marker(pos,{icon:ico,zIndexOffset:500}).addTo(map);
+    m.bindPopup(`<b>${t.n}</b> → ${t.dir}<br>Transito PL: ${t.oraPL}<br>🚧 ${t.bD}–${t.bU}`);
+    tMks.push(m);
+  });
+}
+
+function rBanner(){
+  const b=document.getElementById('bnr');
+  if(!LAV.msg){b.style.display='none';return;}
+  b.style.display='block';b.style.background=LAV.col+'12';b.style.borderBottomColor=LAV.col+'25';
+  const t=document.getElementById('bnrtxt');t.style.color=LAV.col;t.textContent=LAV.msg;
+}
+
+function rOrarioAvviso(){
+  const b=document.getElementById('bnr-orario');
+  if(!orarioScaduto()){b.style.display='none';return;}
+  b.style.display='block';
+  document.getElementById('bnr-orario-txt').textContent=
+    '⚠ Dal 13 dic 2026 è in vigore il nuovo orario invernale: gli orari in questa app potrebbero non essere aggiornati.';
+}
+
+function rStorico(){
+  const s=ldS(),el=document.getElementById('storico');
+  if(!s.length){el.innerHTML='<div class="empty" style="padding:14px 0">Nessuna segnalazione ancora</div>';return;}
+  el.innerHTML=[...s].reverse().map((x,i)=>`
+    <div class="stoitem">
+      <div><div class="stim">${x.ora}</div><div class="smeta">${new Date(x.ts).toLocaleDateString('it-IT')} · ${x.dir||'dir. ?'}</div></div>
+      <div class="srgt">
+        <span class="sch2 ${x.tp==='Merci'?'sm':x.man?'sg':'ss'}">${x.tp}</span>
+        <button class="bdel" onclick="delS(${s.length-1-i})">✕</button>
+      </div>
+    </div>`).join('');
+  const p=calPat(s),pw=document.getElementById('patwrap');
+  if(p){pw.style.display='block';document.getElementById('pattxt').textContent=p;}else pw.style.display='none';
+}
+
+/* ═══════════════════════════════════════════════
+   AZIONI
+═══════════════════════════════════════════════ */
+function setTab(t){
+  curTab=t;
+  document.getElementById('bmon').className='tp '+(t==='mon'?'on':'off');
+  document.getElementById('bseg').className='tp '+(t==='seg'?'on':'off');
+  document.getElementById('scr-mon').style.display=t==='mon'?'flex':'none';
+  document.getElementById('scr-seg').style.display=t==='seg'?'block':'none';
+  if(t==='seg')rStorico();else setTimeout(()=>{if(map)map.invalidateSize();},150);
+}
+function setF(f){
+  filtro=f;
+  document.querySelectorAll('.fc').forEach(b=>b.className='fc '+(b.dataset.f===f?'on':'off'));
+  tick();
+}
+function segnalaOra(){
+  const n=new Date(),ora=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');
+  const s=ldS();s.push({ora,ts:n.toISOString(),tp:document.getElementById('sgtipo').value,dir:document.getElementById('sgdir').value,man:false});svS(s);
+  flash('✓ Transito registrato — '+ora);setTab('mon');
+}
+function salva(){
+  const ora=document.getElementById('sgora').value;if(!ora)return;
+  const s=ldS();s.push({ora,ts:new Date().toISOString(),tp:document.getElementById('sgtipo').value,dir:document.getElementById('sgdir').value,man:true});svS(s);
+  flash('✓ Segnalazione salvata');rStorico();
+}
+function delS(i){const s=ldS();s.splice(i,1);svS(s);rStorico();tick();}
+function flash(msg){const f=document.getElementById('flash');f.textContent=msg;f.classList.add('show');setTimeout(()=>f.classList.remove('show'),2200);}
+
+/* ═══════════════════════════════════════════════
+   SERVER RENDER — interroga ogni 30s il server che
+   a sua volta aggiorna orari e ritardi da ViaggiaTreno
+═══════════════════════════════════════════════ */
+// Ritardi live — Cloudflare Worker dedicato
+// Gira su 200+ server globali, non bloccabile da Trenitalia, sempre attivo
+const WORKER_URL = 'https://sparkling-morning-4aa3.robertalefosse.workers.dev';
+
+// Stazioni in ordine da Pinerolo a Chivasso. Il P.L. sta tra Candiolo e Nichelino.
+const ORDINE_STAZ=['pinerolo','pinerolo olimpica','piscina di pinerolo','airasca','none','candiolo','nichelino','moncalieri sangone','torino lingotto','torino porta susa','torino rebaudengo fossata','torino stura','settimo','brandizzo','chivasso'];
+// true = già passato dal P.L., false = non ancora, null = non so
+function passatoPL(dir,ultimo){
+  if(!ultimo) return false; // non ancora partito/rilevato
+  const nome=String(ultimo).toLowerCase().trim();
+  const i=ORDINE_STAZ.findIndex(s=>nome===s||nome.startsWith(s));
+  if(i<0) return null;
+  return dir==='Chivasso' ? i>=6 : i<=5; // verso Chivasso: dopo Nichelino; verso Pinerolo: da Candiolo in poi
+}
+
+// Treni che stanno per passare (da 30 min fa a 60 min avanti, secondo l'orario teorico)
+function treniVicini(){
+  if(LAV.blocca) return [];
+  const fest=isFest(), out=[];
+  ORARI_FISSI.forEach(t=>{
+    if(fest && t.per==='FER6') return;
+    if(!fest && t.per==='FEST') return;
+    const off=(t.dir==='Pinerolo' && LAV.f===1)?4:0;
+    const oraPL=ORARI_LIVE[t.n]||aM(t.ref,2+off);
+    const sec=secTo(oraPL,0);
+    if(sec>=-1800 && sec<=3600) out.push({n:t.n,sec});
+  });
+  return out.sort((x,y)=>x.sec-y.sec).slice(0,8).map(x=>x.n);
+}
+
+// Ritardi: l'app chiede al Worker i treni precisi che stanno per passare
+async function fetchVT(){
+  const li=document.getElementById('live');
+  const lista=treniVicini();
+  if(!lista.length){
+    RITARDI={}; LIVE_NOTO={}; LIVE_POS={}; liveDisponibile=false;
+    li.textContent=' ● nessun treno vicino'; li.className='lof';
+    rOrarioAvviso(); return;
+  }
+  try{
+    const r=await fetch(WORKER_URL+'/ritardi?treni='+lista.join(','),{signal:AbortSignal.timeout(9000)});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const d=await r.json();
+    const nuovi={}, noto={}, pos={};
+    lista.forEach(n=>{
+      const x=(d.treni||{})[n];
+      if(x && x.ok){
+        noto[n]=true; if(x.ritardo>0) nuovi[n]=x.ritardo;
+        const f=ORARI_FISSI.find(o=>o.n===n);
+        pos[n]={passato:f?passatoPL(f.dir,x.ultimo):null, soppresso:!!x.soppresso};
+      }
+      else noto[n]=false;
+    });
+    RITARDI=nuovi; LIVE_NOTO=noto; LIVE_POS=pos;
+    const riusciti=Object.values(noto).filter(Boolean).length;
+    const nRit=Object.keys(nuovi).length;
+    liveDisponibile=riusciti>0;
+    if(riusciti===lista.length){
+      li.textContent=nRit>0?` ● live +${nRit} in ritardo`:' ● live (in orario)'; li.className='lon';
+    } else if(riusciti>0){
+      li.textContent=` ● live parziale ${riusciti}/${lista.length}`; li.className='lof';
+    } else {
+      li.textContent=' ● solo orario teorico'; li.className='lof';
+    }
+  }catch(err){
+    RITARDI={}; LIVE_NOTO={}; LIVE_POS={}; liveDisponibile=false;
+    li.textContent=' ● solo orario teorico'; li.className='lof';
+  }
+  rOrarioAvviso();
+}
+
+// Diagnostica: cosa riesce a leggere questo telefono? (tocca "Diagnostica ritardi" in fondo)
+async function diagnosi(){
+  const out=document.getElementById('diagOut'); out.style.display='block'; out.textContent='Test in corso…';
+  const target='https://www.viaggiatreno.it/infomobilita/resteasy/viaggiatreno/cercaNumeroTrenoTrenoAutocomplete/26218';
+  const prove=[
+    ['DIRETTO dal telefono', target],
+    ['via corsproxy.io', 'https://corsproxy.io/?'+encodeURIComponent(target)],
+    ['via allorigins', 'https://api.allorigins.win/raw?url='+encodeURIComponent(target)],
+    ['via codetabs', 'https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(target)],
+    ['Worker Cloudflare', WORKER_URL+'/ritardi?treni=26218'],
+  ];
+  let t='ora telefono '+new Date().toLocaleTimeString('it-IT')+'\n';
+  for(const [nome,url] of prove){
+    try{
+      const r=await fetch(url,{signal:AbortSignal.timeout(8000)});
+      const x=(await r.text()).slice(0,70).replace(/\s+/g,' ');
+      t+=nome+': HTTP '+r.status+' → '+x+'\n';
+    }catch(e){
+      t+=nome+': ERRORE '+(e.name==='TimeoutError'?'(timeout)':'('+String(e.message||e)+')')+'\n';
+    }
+    out.textContent=t+'…';
+  }
+  out.textContent=t;
+}
+
+/* ═══════════════════════════════════════════════
+   LOOP PRINCIPALE
+═══════════════════════════════════════════════ */
+function tick(){
+  const tr=buildTreni();
+  rStato(tr);
+  if(curTab==='mon'){rMappa(tr.filter(apF));rLista(tr);}
+}
+
+// splash progress — più rapido, max 800ms di attesa percepita
+let prog=0;
+const sfill=document.getElementById('splash-fill');
+const siv=setInterval(()=>{prog=Math.min(prog+Math.random()*40,95);sfill.style.width=prog+'%';},100);
+
+// orologio
+setInterval(()=>{
+  const n=new Date();
+  document.getElementById('clk').textContent=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')+':'+String(n.getSeconds()).padStart(2,'0');
+},1000);
+
+// ora default form
+const _n=new Date();
+document.getElementById('sgora').value=String(_n.getHours()).padStart(2,'0')+':'+String(_n.getMinutes()).padStart(2,'0');
+
+rBanner();rOrarioAvviso();
+setInterval(tick,1000);
+
+// ── AVVIO RAPIDO ──────────────────────────────────────────
+// 1. Mostra subito la lista treni con orari fissi (istantaneo, nessuna rete)
+tick();
+
+// 2. Nascondi lo splash dopo massimo 700ms, indipendentemente da mappa/ritardi
+function nascondiSplash(){
+  clearInterval(siv);
+  sfill.style.width='100%';
+  setTimeout(()=>{document.getElementById('splash').classList.add('hide');},250);
+}
+setTimeout(nascondiSplash, 700);
+
+// 3. Carica Leaflet e la mappa in background (non blocca l'interfaccia)
+loadLeaflet(function(){
+  initMappa();
+  setTimeout(()=>{if(map)map.invalidateSize();tick();},150);
+});
+
+// 4. Carica i ritardi in background con timeout corto (5s invece di 10s)
+fetchVT();
+setInterval(fetchVT, 30000);
+</script>
+</body>
+</html>
